@@ -18,13 +18,14 @@ let package = Package(
         .package(url: "https://github.com/OperatorFoundation/Chord", from: "0.0.5"),
         .package(url: "https://github.com/OperatorFoundation/Datable", from: "3.0.3"),
         .package(name: "Socket", url: "https://github.com/OperatorFoundation/BlueSocket", from: "1.1.0"),
+	.package(url: "https://github.com/OperatorFoundation/Transport", from: "2.3.3"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "TransmissionLinux",
-            dependencies: ["Chord", "Socket", "Datable"]),
+            dependencies: ["Chord", "Socket", "Datable", "Transport"]),
         .testTarget(
             name: "TransmissionLinuxTests",
             dependencies: ["TransmissionLinux", "Datable"]),

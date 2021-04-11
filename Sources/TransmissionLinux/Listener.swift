@@ -31,6 +31,6 @@ public class Listener
     public func accept() -> Connection?
     {
         guard let newConnection = try? self.socket.acceptClientConnection(invokeDelegate: false) else {return nil}
-        return Connection(socket: newConnection)
+        return SocketConnection(socket: newConnection)
     }
 }
