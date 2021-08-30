@@ -86,6 +86,10 @@ public class SocketConnection: Connection
         
         return true
     }
+    
+    public func identifier() -> Int {
+        return Int(self.socket.socketfd)
+    }
 }
 
 public enum ConnectionType

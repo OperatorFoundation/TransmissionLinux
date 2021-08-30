@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/OperatorFoundation/Chord",
         "state": {
           "branch": null,
-          "revision": "080cb496d8691571cad2ff241265a1e544d0960c",
-          "version": "0.0.10"
+          "revision": "25e5267c7dde0df1f7bcc285979f6302d46f7101",
+          "version": "0.0.12"
         }
       },
       {
@@ -29,30 +29,12 @@
         }
       },
       {
-        "package": "NetworkLinux",
-        "repositoryURL": "https://github.com/OperatorFoundation/NetworkLinux.git",
-        "state": {
-          "branch": null,
-          "revision": "5b2fdbf29daeb5bba4fd4731080620a8fe3220e4",
-          "version": "0.3.0"
-        }
-      },
-      {
-        "package": "SwiftHexTools",
-        "repositoryURL": "https://github.com/OperatorFoundation/SwiftHexTools",
-        "state": {
-          "branch": null,
-          "revision": "4ce4a4f66eea05c900d447af8c07ecaac720716c",
-          "version": "1.2.2"
-        }
-      },
-      {
         "package": "SwiftQueue",
         "repositoryURL": "https://github.com/OperatorFoundation/SwiftQueue",
         "state": {
           "branch": null,
-          "revision": "0e5979acbb104516a427bb2bb09debc50ca100b4",
-          "version": "0.0.3"
+          "revision": "eaa39c586fddb49ad1e0e8b5b3e9b0aaf0b3be82",
+          "version": "0.1.0"
         }
       },
       {
@@ -60,8 +42,8 @@
         "repositoryURL": "https://github.com/OperatorFoundation/Transport",
         "state": {
           "branch": null,
-          "revision": "6cf442135c218560f317de6d17271849479d2186",
-          "version": "2.3.3"
+          "revision": "b5ac00eac45a2e57923540c1fd80c734fe160ffe",
+          "version": "2.3.5"
         }
       }
     ]
