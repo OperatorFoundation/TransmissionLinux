@@ -16,9 +16,9 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
         .package(url: "https://github.com/OperatorFoundation/Chord", from: "0.0.12"),
-        .package(url: "https://github.com/OperatorFoundation/Datable", from: "3.0.4"),
+        .package(url: "https://github.com/OperatorFoundation/Datable", from: "3.0.6"),
         .package(name: "Socket", url: "https://github.com/OperatorFoundation/BlueSocket", from: "1.1.0"),
-	.package(url: "https://github.com/OperatorFoundation/Transport", from: "2.3.5"),
+	.package(url: "https://github.com/OperatorFoundation/Transport", from: "2.3.6"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
