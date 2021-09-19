@@ -74,6 +74,7 @@ public class Connection
     
     public func read(size: Int) -> Data?
     {
+        print("TransmissionLinux read called: \(#file), \(#line)")
         var result: Data?
         
         self.readLock.enter()
@@ -102,12 +103,14 @@ public class Connection
     
     public func write(string: String) -> Bool
     {
+        print("TransmissionLinux write called: \(#file), \(#line)")
         let data = string.data
         return write(data: data)
     }
     
     public func write(data: Data) -> Bool
     {
+        print("TransmissionLinux write called: \(#file), \(#line)")
         var success = false
         
         self.writeLock.enter()
