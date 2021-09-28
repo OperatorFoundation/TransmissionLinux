@@ -101,6 +101,35 @@ public class Connection
         return result
     }
     
+    public func read(maxSize: Int) -> Data?
+    {
+        print("TransmissionLinux read called: \(#file), \(#line)")
+        var result: Data?
+        
+        self.readLock.enter()
+        self.connection.receive(minimumIncompleteLength: 1, maximumLength: maxSize)
+        {
+            (maybeData, maybeContext, isComplete, maybeError) in
+            
+            guard maybeError == nil else
+            {
+                self.readLock.leave()
+                return
+            }
+            
+            if let data = maybeData
+            {
+                result = data
+            }
+            
+            self.readLock.leave()
+        }
+        
+        readLock.wait()
+        
+        return result
+    }
+    
     public func write(string: String) -> Bool
     {
         print("TransmissionLinux write called: \(#file), \(#line)")
