@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/OperatorFoundation/Chord",
         "state": {
           "branch": null,
-          "revision": "25e5267c7dde0df1f7bcc285979f6302d46f7101",
-          "version": "0.0.12"
+          "revision": "94ef383494fb4c1b8b0e0e368df6f35265ff62d1",
+          "version": "0.0.14"
         }
       },
       {
@@ -24,8 +24,26 @@
         "repositoryURL": "https://github.com/OperatorFoundation/Datable",
         "state": {
           "branch": null,
-          "revision": "31b055da961f794f1a2ce01b5521ee650815a9c9",
-          "version": "3.0.6"
+          "revision": "f935c18f2527f1b3cb6cad2511758b54effac5b1",
+          "version": "3.1.2"
+        }
+      },
+      {
+        "package": "Net",
+        "repositoryURL": "https://github.com/OperatorFoundation/Net",
+        "state": {
+          "branch": null,
+          "revision": "57de753edfa076c8b6c2ce5d08bbd48e3cdc1d52",
+          "version": "0.0.1"
+        }
+      },
+      {
+        "package": "swift-log",
+        "repositoryURL": "https://github.com/apple/swift-log.git",
+        "state": {
+          "branch": null,
+          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
+          "version": "1.4.2"
         }
       },
       {
@@ -33,8 +51,8 @@
         "repositoryURL": "https://github.com/OperatorFoundation/SwiftQueue",
         "state": {
           "branch": null,
-          "revision": "eaa39c586fddb49ad1e0e8b5b3e9b0aaf0b3be82",
-          "version": "0.1.0"
+          "revision": "5e6cd8b325493f520a45d20d788efca707b53e6c",
+          "version": "0.1.2"
         }
       },
       {
@@ -42,8 +60,8 @@
         "repositoryURL": "https://github.com/OperatorFoundation/Transport",
         "state": {
           "branch": null,
-          "revision": "91dca4e691a9d2a6d38acd9b6dd64a1240da85f1",
-          "version": "2.3.6"
+          "revision": "a95c7bd870c558a040f9a22a88badab5577bd4df",
+          "version": "2.3.8"
         }
       }
     ]

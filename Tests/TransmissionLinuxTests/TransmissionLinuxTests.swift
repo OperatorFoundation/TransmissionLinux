@@ -23,10 +23,10 @@ final class TransmissionTests: XCTestCase
     
     func runServer(_ lock: DispatchGroup)
     {
-        guard let listener = Listener(port: 1234) else {return}
+        guard let listener = TransmissionListener(port: 1234) else {return}
         lock.leave()
 
-        guard let connection = listener.accept() else {return}
+        let connection = listener.accept()
         let _ = connection.read(size: 4)
         let _ = connection.write(string: "back")
     }
