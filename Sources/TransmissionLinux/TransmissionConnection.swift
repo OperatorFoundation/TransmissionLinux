@@ -16,7 +16,7 @@ public class TransmissionConnection: Connection
     var readLock = DispatchGroup()
     var writeLock = DispatchGroup()
     let log: Logger?
-    let states: Queue<Bool> = Queue<Bool>()
+    let states: BlockingQueue<Bool> = BlockingQueue<Bool>()
 
     var buffer: Data = Data()
 
@@ -57,7 +57,7 @@ public class TransmissionConnection: Connection
         mutableTransport.stateUpdateHandler = self.handleState
         mutableTransport.start(queue: .global())
 
-        guard let success = self.states.dequeue() else {return nil}
+        let success = self.states.dequeue()
         guard success else {return nil}
     }
 
@@ -75,18 +75,18 @@ public class TransmissionConnection: Connection
         switch state
         {
             case .ready:
-                self.states.enqueue(true)
+                self.states.enqueue(element: true)
                 return
             case .cancelled:
-                self.states.enqueue(false)
+                self.states.enqueue(element: false)
                 self.failConnect()
                 return
             case .failed(_):
-                self.states.enqueue(false)
+                self.states.enqueue(element: false)
                 self.failConnect()
                 return
             case .waiting(_):
-                self.states.enqueue(false)
+                self.states.enqueue(element: false)
                 self.failConnect()
                 return
             default:
