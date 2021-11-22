@@ -1,6 +1,7 @@
 import XCTest
 import Foundation
 @testable import TransmissionLinux
+import Logging
 
 final class TransmissionTests: XCTestCase
 {
@@ -23,7 +24,8 @@ final class TransmissionTests: XCTestCase
     
     func runServer(_ lock: DispatchGroup)
     {
-        guard let listener = TransmissionListener(port: 1234) else {return}
+        let logger: Logger = Logger(label: "runServer")
+        guard let listener = TransmissionListener(port: 1234, logger: logger) else {return}
         lock.leave()
 
         let connection = listener.accept()
