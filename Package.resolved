@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/OperatorFoundation/Datable",
         "state": {
           "branch": null,
-          "revision": "f935c18f2527f1b3cb6cad2511758b54effac5b1",
-          "version": "3.1.2"
+          "revision": "b106352f6ccc0615b898a4855a7812bd33fd8772",
+          "version": "3.1.4"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/OperatorFoundation/Transport",
         "state": {
           "branch": null,
-          "revision": "514e391f7b927e4cc90acb0076a36700f584192f",
-          "version": "2.3.9"
+          "revision": "71eaf60eb34e15bcce950d629da1b7e5ee720f71",
+          "version": "2.3.11"
         }
       }
     ]

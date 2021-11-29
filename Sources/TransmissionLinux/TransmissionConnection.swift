@@ -117,6 +117,7 @@ public class TransmissionConnection: Connection
 
         if size == 0
         {
+            if let log = self.log {log.error("transmission read size was zero")}
             readLock.leave()
             return nil
         }
@@ -132,6 +133,7 @@ public class TransmissionConnection: Connection
 
         guard let data = networkRead(size: size) else
         {
+            if let log = self.log {log.error("transmission read's network read failed")}
             readLock.leave()
             return nil
         }
@@ -140,6 +142,7 @@ public class TransmissionConnection: Connection
 
         guard size <= buffer.count else
         {
+            if let log = self.log {log.error("transmission read asked for more bytes than available in the buffer")}
             readLock.leave()
             return nil
         }
