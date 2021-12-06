@@ -3,6 +3,7 @@ import Datable
 import Transport
 import Logging
 import SwiftQueue
+import SwiftHexTools
 
 import Chord
 import Socket
@@ -128,6 +129,7 @@ public class TransmissionConnection: Connection
             buffer = Data(buffer[size..<buffer.count])
 
             readLock.leave()
+            print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
             return result
         }
 
@@ -151,6 +153,7 @@ public class TransmissionConnection: Connection
         buffer = Data(buffer[size..<buffer.count])
 
         readLock.leave()
+        print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
         return result
     }
 
@@ -407,6 +410,11 @@ public class TransmissionConnection: Connection
                     if (bytesRead < size)
                     {
                         data = Data(data![..<bytesRead])
+                    }
+                    if let realData = data {
+                        print("networkRead size: \(size), bytesRead: \(bytesRead), data: \(realData.hex)")
+                    } else {
+                        print("networkRead size: \(size), bytesRead: \(bytesRead), data: nil")
                     }
                 }
                 catch

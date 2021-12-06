@@ -47,6 +47,15 @@
         }
       },
       {
+        "package": "SwiftHexTools",
+        "repositoryURL": "https://github.com/OperatorFoundation/SwiftHexTools.git",
+        "state": {
+          "branch": null,
+          "revision": "a18a1ca88ad1d4844f445c522aba7ba8f691b1b6",
+          "version": "1.2.5"
+        }
+      },
+      {
         "package": "SwiftQueue",
         "repositoryURL": "https://github.com/OperatorFoundation/SwiftQueue",
         "state": {
