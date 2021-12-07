@@ -9,6 +9,7 @@ import Foundation
 import Socket
 import Chord
 import Logging
+import TransmissionTypes
 
 public class TransmissionListener: Listener
 {

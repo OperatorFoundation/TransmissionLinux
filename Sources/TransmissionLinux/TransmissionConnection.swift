@@ -1,6 +1,5 @@
 import Foundation
 import Datable
-import Transport
 import Logging
 import SwiftQueue
 import SwiftHexTools
@@ -8,11 +7,12 @@ import SwiftHexTools
 import Chord
 import Socket
 import Net
+import TransmissionTypes
 
 public class TransmissionConnection: Connection
 {
     let id: Int
-    var connection: NetworkConnection
+    var connection: Socket
     var connectLock = DispatchGroup()
     var readLock = DispatchGroup()
     var writeLock = DispatchGroup()
@@ -29,7 +29,7 @@ public class TransmissionConnection: Connection
         {
             case .tcp:
                 guard let socket = try? Socket.create() else {return nil}
-                self.connection = .socket(socket)
+                self.connection = socket
                 self.id = Int(socket.socketfd)
 
                 do
@@ -46,69 +46,18 @@ public class TransmissionConnection: Connection
         }
     }
 
-    public required init?(transport: Transport.Connection, logger: Logger? = nil)
-    {
-        self.log = logger
-        maybeLog(message: "Initializing Transmission connection", logger: self.log)
-
-        self.id = Int.random(in: 0..<Int.max)
-
-        var mutableTransport = transport
-        self.connection = .transport(mutableTransport)
-        mutableTransport.stateUpdateHandler = self.handleState
-        mutableTransport.start(queue: .global())
-
-        let success = self.states.dequeue()
-        guard success else {return nil}
-    }
-
     public init(socket: Socket)
     {
-        self.connection = .socket(socket)
+        self.connection = socket
         self.id = Int(socket.socketfd)
         self.log = nil
-    }
-
-    func handleState(state: NWConnection.State)
-    {
-        connectLock.wait()
-
-        switch state
-        {
-            case .ready:
-                self.states.enqueue(element: true)
-                return
-            case .cancelled:
-                self.states.enqueue(element: false)
-                self.failConnect()
-                return
-            case .failed(_):
-                self.states.enqueue(element: false)
-                self.failConnect()
-                return
-            case .waiting(_):
-                self.states.enqueue(element: false)
-                self.failConnect()
-                return
-            default:
-                return
-        }
     }
 
     func failConnect()
     {
         maybeLog(message: "Failed to make a Transmission connection", logger: self.log)
 
-        switch self.connection
-        {
-            case .socket(let socket):
-                socket.close()
-                break
-            case .transport(var connection):
-                connection.stateUpdateHandler = nil
-                connection.cancel()
-                break
-        }
+        self.connection.close()
     }
 
     public func read(size: Int) -> Data?
@@ -184,45 +133,19 @@ public class TransmissionConnection: Connection
 
             var data: Data?
 
-            switch self.connection
+            do
             {
-                case .socket(let socket):
-                    do
-                    {
-                        data = Data(repeating: 0, count: maxSize)
-                        let bytesRead = try socket.read(into: &data!)
-                        if (bytesRead < size)
-                        {
-                            data = Data(data![..<bytesRead])
-                        }
-                    }
-                    catch
-                    {
-                        readLock.leave()
-                        return nil
-                    }
-
-                case .transport(let transport):
-                    let transportLock = DispatchGroup()
-                    transportLock.enter()
-                    transport.receive(minimumIncompleteLength: 1, maximumLength: maxSize)
-                    {
-                        maybeData, maybeContext, isComplete, maybeError in
-
-                        guard let transportData = maybeData else
-                        {
-                            data = nil
-                            return
-                        }
-
-                        guard maybeError == nil else
-                        {
-                            data = nil
-                            return
-                        }
-
-                        data = transportData
-                    }
+                data = Data(repeating: 0, count: maxSize)
+                let bytesRead = try self.connection.read(into: &data!)
+                if (bytesRead < size)
+                {
+                    data = Data(data![..<bytesRead])
+                }
+            }
+            catch
+            {
+                readLock.leave()
+                return nil
             }
 
             guard let bytes = data else
@@ -400,50 +323,23 @@ public class TransmissionConnection: Connection
     {
         var data: Data?
 
-        switch self.connection
+        do
         {
-            case .socket(let socket):
-                do
-                {
-                    data = Data(repeating: 0, count: size)
-                    let bytesRead = try socket.read(into: &data!)
-                    if (bytesRead < size)
-                    {
-                        data = Data(data![..<bytesRead])
-                    }
-                    if let realData = data {
-                        print("networkRead size: \(size), bytesRead: \(bytesRead), data: \(realData.hex)")
-                    } else {
-                        print("networkRead size: \(size), bytesRead: \(bytesRead), data: nil")
-                    }
-                }
-                catch
-                {
-                    data = nil
-                    break
-                }
-
-            case .transport(let transport):
-                let transportLock = DispatchGroup()
-                transportLock.enter()
-                transport.receive(minimumIncompleteLength: size, maximumLength: size)
-                {
-                    maybeData, maybeContext, isComplete, maybeError in
-
-                    guard let transportData = maybeData else
-                    {
-                        data = nil
-                        return
-                    }
-
-                    guard maybeError == nil else
-                    {
-                        data = nil
-                        return
-                    }
-
-                    data = transportData
-                }
+            data = Data(repeating: 0, count: size)
+            let bytesRead = try self.connection.read(into: &data!)
+            if (bytesRead < size)
+            {
+                data = Data(data![..<bytesRead])
+            }
+            if let realData = data {
+                print("networkRead size: \(size), bytesRead: \(bytesRead), data: \(realData.hex)")
+            } else {
+                print("networkRead size: \(size), bytesRead: \(bytesRead), data: nil")
+            }
+        }
+        catch
+        {
+            return nil
         }
 
         return data
@@ -451,50 +347,16 @@ public class TransmissionConnection: Connection
 
     func networkWrite(data: Data) -> Bool
     {
-        var success = false
-        switch self.connection
+        do
         {
-            case .socket(let socket):
-                do
-                {
-                    try socket.write(from: data)
-                    success = true
-                    break
-                }
-                catch
-                {
-                    success = false
-                    break
-                }
-            case .transport(let transport):
-                let lock = DispatchGroup()
-                lock.enter()
-                transport.send(content: data, contentContext: .defaultMessage, isComplete: false, completion: NWConnection.SendCompletion.contentProcessed(
-                    {
-                        error in
-
-                        guard error == nil else
-                        {
-                            success = false
-                            lock.leave()
-                            return
-                        }
-
-                        success = true
-                        lock.leave()
-                        return
-                    }))
-                lock.wait()
+            try self.connection.write(from: data)
+            return true
         }
-
-        return success
+        catch
+        {
+            return false
+        }
     }
-}
-
-enum NetworkConnection
-{
-    case socket(Socket)
-    case transport(Transport.Connection)
 }
 
 public func maybeLog(message: String, logger: Logger? = nil) {
