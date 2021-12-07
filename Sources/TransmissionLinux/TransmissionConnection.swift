@@ -53,13 +53,6 @@ public class TransmissionConnection: Connection
         self.log = nil
     }
 
-    func failConnect()
-    {
-        maybeLog(message: "Failed to make a Transmission connection", logger: self.log)
-
-        self.connection.close()
-    }
-
     public func read(size: Int) -> Data?
     {
         print("TransmissionLinux read called: \(#file), \(#line)")
@@ -325,7 +318,7 @@ public class TransmissionConnection: Connection
 
         do
         {
-            data = Data(repeating: 0, count: size)
+            data = Data(repeating: 0x1A, count: size)
             let bytesRead = try self.connection.read(into: &data!)
             if (bytesRead < size)
             {
