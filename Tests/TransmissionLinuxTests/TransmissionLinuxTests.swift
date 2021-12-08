@@ -35,15 +35,16 @@ final class TransmissionTests: XCTestCase
     
     func runClient()
     {
-//        let connection = Connection(host: "127.0.0.1", port: 1234)
-//        XCTAssertNotNil(connection)
-//        
-//        let writeResult = connection!.write(string: "test")
-//        XCTAssertTrue(writeResult)
-//        
-//        let result = connection!.read(size: 4)
-//        XCTAssertNotNil(result)
-//        
-//        XCTAssertEqual(result!, "back")
+      guard let connection = TransmissionConnection(host: "127.0.0.1", port: 1234) else
+      {
+        XCTFail()
+        return
+      }
+
+      guard let data = connection.readWithLengthPrefix(prefixSizeInBits: 16) else
+      {
+        XCTFail()
+        return
+      }
     }
 }
