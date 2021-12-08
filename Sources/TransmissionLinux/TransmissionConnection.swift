@@ -318,6 +318,7 @@ public class TransmissionConnection: Connection
 
         do
         {
+            maybeLog(message: "networkRead(size: \(size))", logger: self.log)
             data = Data(repeating: 0x1A, count: size)
             let bytesRead = try self.connection.read(into: &data!)
             if (bytesRead < size)
