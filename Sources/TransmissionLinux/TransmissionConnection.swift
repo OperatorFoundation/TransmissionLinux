@@ -314,27 +314,21 @@ public class TransmissionConnection: Connection
 
     func networkRead(size: Int) -> Data?
     {
-        var data: Data?
-
-        do
+        maybeLog(message: "networkRead(size: \(size))", logger: self.log)
+        while self.buffer.count < size
         {
-            maybeLog(message: "networkRead(size: \(size))", logger: self.log)
-            data = Data(repeating: 0x1A, count: size)
-            let bytesRead = try self.connection.read(into: &data!)
-            if (bytesRead < size)
+            do
             {
-                data = Data(data![..<bytesRead])
+                let _ = try self.connection.read(into: &self.buffer)
             }
-            if let realData = data {
-                print("networkRead size: \(size), bytesRead: \(bytesRead), data: \(realData.hex)")
-            } else {
-                print("networkRead size: \(size), bytesRead: \(bytesRead), data: nil")
+            catch
+            {
+                return nil
             }
         }
-        catch
-        {
-            return nil
-        }
+
+        let data = Data(self.buffer[..<size])
+        self.buffer = Data(self.buffer[size...])
 
         return data
     }
