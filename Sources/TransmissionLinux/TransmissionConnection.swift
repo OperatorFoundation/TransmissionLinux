@@ -314,18 +314,23 @@ public class TransmissionConnection: Connection
 
     func networkRead(size: Int) -> Data?
     {
-        maybeLog(message: "networkRead(size: \(size))", logger: self.log)
+        maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead(size: \(size))", logger: self.log)
         while self.buffer.count < size
         {
             do
             {
-                let _ = try self.connection.read(into: &self.buffer)
+                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count before network read\(self.buffer.count)", logger: self.log)
+                let bytesRead = try self.connection.read(into: &self.buffer)
+                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - actual read size \(bytesRead)", logger: self.log)
+                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after network read \(self.buffer.count)", logger: self.log)
             }
             catch
             {
                 return nil
             }
         }
+
+        maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after loop \(self.buffer.count)", logger: self.log)
 
         let data = Data(self.buffer[..<size])
         self.buffer = Data(self.buffer[size...])
