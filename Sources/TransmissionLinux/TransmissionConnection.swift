@@ -28,7 +28,13 @@ public class TransmissionConnection: Connection
         switch type
         {
             case .tcp:
-                guard let socket = try? Socket.create() else {return nil}
+                guard let socket = try? Socket.create()
+                else
+                {
+                    log?.error("Failed to create a Linux TransmissionConnection: Socket.create() failed.")
+                    print("Failed to create a Linux TransmissionConnection: Socket.create() failed.")
+                    return nil
+                }
                 self.connection = socket
                 self.id = Int(socket.socketfd)
 
@@ -38,6 +44,9 @@ public class TransmissionConnection: Connection
                 }
                 catch
                 {
+                    log?.error("Failed to create a Linux transmission connection. socket.connect() failed: \(error)")
+                    print("socket.connect() failed:")
+                    print(error)
                     return nil
                 }
             case .udp:
