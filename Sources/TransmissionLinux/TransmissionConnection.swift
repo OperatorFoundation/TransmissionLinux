@@ -40,6 +40,7 @@ public class TransmissionConnection: Connection
 
                 do
                 {
+                    print("Attempting socket.connect with host: \(host) and port: \(port)")
                     try socket.connect(to: host, port: Int32(port))
                 }
                 catch
