@@ -65,7 +65,7 @@ public class TransmissionConnection: Connection
 
     public func read(size: Int) -> Data?
     {
-        print("TransmissionLinux read called: \(#file), \(#line)")
+//        print("TransmissionLinux read called: \(#file), \(#line)")
         readLock.enter()
 
         if size == 0
@@ -111,7 +111,7 @@ public class TransmissionConnection: Connection
 
     public func read(maxSize: Int) -> Data?
     {
-        print("TransmissionLinux read called: \(#file), \(#line)")
+//        print("TransmissionLinux read called: \(#file), \(#line)")
         readLock.enter()
 
         if maxSize == 0
