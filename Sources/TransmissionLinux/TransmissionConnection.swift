@@ -81,7 +81,7 @@ public class TransmissionConnection: Connection
             buffer = Data(buffer[size..<buffer.count])
 
             readLock.leave()
-            print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
+            //print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
             return result
         }
 
@@ -105,7 +105,7 @@ public class TransmissionConnection: Connection
         buffer = Data(buffer[size..<buffer.count])
 
         readLock.leave()
-        print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
+        //print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
         return result
     }
 
