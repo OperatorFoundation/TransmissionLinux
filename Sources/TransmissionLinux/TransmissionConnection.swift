@@ -133,14 +133,13 @@ public class TransmissionConnection: Connection
         else
         {
             // Buffer is empty, so we need to do a network read
-
             var data: Data?
 
             do
             {
                 data = Data(repeating: 0, count: maxSize)
                 let bytesRead = try self.connection.read(into: &data!)
-                if (bytesRead < size)
+                if (bytesRead < maxSize)
                 {
                     data = Data(data![..<bytesRead])
                 }
