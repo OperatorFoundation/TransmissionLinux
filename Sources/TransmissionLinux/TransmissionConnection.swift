@@ -17,8 +17,6 @@ public class TransmissionConnection: Connection
     var readLock = DispatchGroup()
     var writeLock = DispatchGroup()
     let log: Logger?
-    let states: BlockingQueue<Bool> = BlockingQueue<Bool>()
-
     var buffer: Data = Data()
 
     public init?(host: String, port: Int, type: ConnectionType = .tcp, logger: Logger? = nil)
@@ -56,7 +54,7 @@ public class TransmissionConnection: Connection
         }
     }
 
-    public init(socket: Socket)
+    public init(socket: Socket, logger: Logger? = nil)
     {
         self.connection = socket
         self.id = Int(socket.socketfd)
