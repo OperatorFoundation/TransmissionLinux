@@ -18,7 +18,7 @@ let package = Package(
         .package(url: "https://github.com/OperatorFoundation/TransmissionTypes", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Chord", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Datable", branch: "main"),
-        .package(name: "Socket", url: "https://github.com/Kitura/BlueSocket", from: "2.0.2"),
+        .package(name: "Socket", url: "https://github.com/OperatorFoundation/BlueSocket", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Net", branch: "main"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
         .package(url: "https://github.com/OperatorFoundation/SwiftHexTools.git", branch: "main")
