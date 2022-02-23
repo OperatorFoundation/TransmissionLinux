@@ -17,8 +17,6 @@ public class TransmissionConnection: Connection
     var readLock = DispatchGroup()
     var writeLock = DispatchGroup()
     let log: Logger?
-    let states: BlockingQueue<Bool> = BlockingQueue<Bool>()
-
     var buffer: Data = Data()
 
     public init?(host: String, port: Int, type: ConnectionType = .tcp, logger: Logger? = nil)
@@ -28,16 +26,26 @@ public class TransmissionConnection: Connection
         switch type
         {
             case .tcp:
-                guard let socket = try? Socket.create() else {return nil}
+                guard let socket = try? Socket.create()
+                else
+                {
+                    log?.error("Failed to create a Linux TransmissionConnection: Socket.create() failed.")
+                    print("Failed to create a Linux TransmissionConnection: Socket.create() failed.")
+                    return nil
+                }
                 self.connection = socket
                 self.id = Int(socket.socketfd)
 
                 do
                 {
+                    print("Attempting socket.connect with host: \(host) and port: \(port)")
                     try socket.connect(to: host, port: Int32(port))
                 }
                 catch
                 {
+                    log?.error("Failed to create a Linux transmission connection. socket.connect() failed: \(error)")
+                    print("socket.connect() failed:")
+                    print(error)
                     return nil
                 }
             case .udp:
@@ -46,7 +54,7 @@ public class TransmissionConnection: Connection
         }
     }
 
-    public init(socket: Socket)
+    public init(socket: Socket, logger: Logger? = nil)
     {
         self.connection = socket
         self.id = Int(socket.socketfd)
@@ -55,7 +63,7 @@ public class TransmissionConnection: Connection
 
     public func read(size: Int) -> Data?
     {
-        print("TransmissionLinux read called: \(#file), \(#line)")
+//        print("TransmissionLinux read called: \(#file), \(#line)")
         readLock.enter()
 
         if size == 0
@@ -71,7 +79,7 @@ public class TransmissionConnection: Connection
             buffer = Data(buffer[size..<buffer.count])
 
             readLock.leave()
-            print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
+            //print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
             return result
         }
 
@@ -95,13 +103,13 @@ public class TransmissionConnection: Connection
         buffer = Data(buffer[size..<buffer.count])
 
         readLock.leave()
-        print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
+        //print("\nTransmission read returned result: \(result.hex), buffer: \(buffer.hex)\n")
         return result
     }
 
     public func read(maxSize: Int) -> Data?
     {
-        print("TransmissionLinux read called: \(#file), \(#line)")
+//        print("TransmissionLinux read called: \(#file), \(#line)")
         readLock.enter()
 
         if maxSize == 0
@@ -123,14 +131,13 @@ public class TransmissionConnection: Connection
         else
         {
             // Buffer is empty, so we need to do a network read
-
             var data: Data?
 
             do
             {
                 data = Data(repeating: 0, count: maxSize)
                 let bytesRead = try self.connection.read(into: &data!)
-                if (bytesRead < size)
+                if (bytesRead < maxSize)
                 {
                     data = Data(data![..<bytesRead])
                 }

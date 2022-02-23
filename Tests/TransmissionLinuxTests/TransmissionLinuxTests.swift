@@ -41,7 +41,7 @@ final class TransmissionTests: XCTestCase
         return
       }
 
-      guard let data = connection.readWithLengthPrefix(prefixSizeInBits: 16) else
+      guard let _ = connection.readWithLengthPrefix(prefixSizeInBits: 16) else
       {
         XCTFail()
         return
