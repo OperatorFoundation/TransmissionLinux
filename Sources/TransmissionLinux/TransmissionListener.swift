@@ -43,4 +43,9 @@ public class TransmissionListener: Listener
             }
         }
     }
+
+    public func close()
+    {
+        self.socket.close()
+    }
 }
