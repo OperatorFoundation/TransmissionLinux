@@ -357,6 +357,11 @@ public class TransmissionConnection: Connection
             return false
         }
     }
+
+    public func close()
+    {
+        self.connection.close()
+    }
 }
 
 public func maybeLog(message: String, logger: Logger? = nil) {
