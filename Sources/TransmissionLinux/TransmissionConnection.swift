@@ -332,6 +332,7 @@ public class TransmissionConnection: Connection
                 if bytesRead > 0
                 {
                     maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - actual read size \(bytesRead)", logger: self.log)
+                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - requested read size \(size)", logger: self.log)
                     maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after network read \(self.buffer.count)", logger: self.log)
                 }
             }
