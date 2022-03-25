@@ -326,10 +326,14 @@ public class TransmissionConnection: Connection
         {
             do
             {
-                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count before network read\(self.buffer.count)", logger: self.log)
+                //maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count before network read\(self.buffer.count)", logger: self.log)
                 let bytesRead = try self.connection.read(into: &self.buffer)
-                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - actual read size \(bytesRead)", logger: self.log)
-                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after network read \(self.buffer.count)", logger: self.log)
+                
+                if bytesRead > 0
+                {
+                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - actual read size \(bytesRead)", logger: self.log)
+                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after network read \(self.buffer.count)", logger: self.log)
+                }
             }
             catch
             {
