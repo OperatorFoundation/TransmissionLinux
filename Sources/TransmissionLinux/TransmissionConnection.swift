@@ -337,6 +337,7 @@ public class TransmissionConnection: Connection
             }
             catch
             {
+                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - Error: \(error)", logger: self.log)
                 return nil
             }
         }
