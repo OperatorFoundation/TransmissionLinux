@@ -63,7 +63,7 @@ public class TransmissionConnection: Connection
 
     public func read(size: Int) -> Data?
     {
-//        print("TransmissionLinux read called: \(#file), \(#line)")
+        print("TransmissionLinux read(size: \(size)) called: \(#file), \(#line)")
         readLock.enter()
 
         if size == 0
@@ -109,7 +109,7 @@ public class TransmissionConnection: Connection
 
     public func read(maxSize: Int) -> Data?
     {
-//        print("TransmissionLinux read called: \(#file), \(#line)")
+        print("TransmissionLinux read(maxSize: \(maxSize)) called: \(#file), \(#line)")
         readLock.enter()
 
         if maxSize == 0
@@ -194,6 +194,7 @@ public class TransmissionConnection: Connection
 
     public func readWithLengthPrefix(prefixSizeInBits: Int) -> Data?
     {
+        print("TransmissionLinux readWithLengthPrefix(prefixSizeInBits: \(prefixSizeInBits)) called: \(#file), \(#line)")
         readLock.enter()
 
         var maybeLength: Int? = nil
@@ -322,6 +323,8 @@ public class TransmissionConnection: Connection
     func networkRead(size: Int) -> Data?
     {
         maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead(size: \(size))", logger: self.log)
+        maybeLog(message: "Buffer data before this read was called: \(buffer.count) bytes, \(buffer.hex)", logger: self.log)
+        
         while self.buffer.count < size
         {
             do
@@ -342,9 +345,11 @@ public class TransmissionConnection: Connection
                 return nil
             }
         }
-
+        
+        
         maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after loop \(self.buffer.count)", logger: self.log)
-
+        maybeLog(message: "Buffer contents: \(buffer.hex)", logger: self.log)
+        
         let data = Data(self.buffer[..<size])
         self.buffer = Data(self.buffer[size...])
         
