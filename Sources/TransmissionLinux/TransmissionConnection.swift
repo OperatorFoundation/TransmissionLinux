@@ -347,6 +347,8 @@ public class TransmissionConnection: Connection
 
         let data = Data(self.buffer[..<size])
         self.buffer = Data(self.buffer[size...])
+        
+        maybeLog(message: "Network read is delivering \(data.count) bytes: \(data.hex)", logger: self.log)
 
         return data
     }
