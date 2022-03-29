@@ -325,18 +325,20 @@ public class TransmissionConnection: Connection
         maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead(size: \(size))", logger: self.log)
         maybeLog(message: "Buffer data before this read was called: \(buffer.count) bytes, \(buffer.hex)", logger: self.log)
         
-        while self.buffer.count < size
+        var networkBuffer = Data()
+        
+        while networkBuffer.count < size
         {
             do
             {
                 //maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count before network read\(self.buffer.count)", logger: self.log)
-                let bytesRead = try self.connection.read(into: &self.buffer)
+                let bytesRead = try self.connection.read(into: &networkBuffer)
                 
                 if bytesRead > 0
                 {
                     maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - actual read size \(bytesRead)", logger: self.log)
                     maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - requested read size \(size)", logger: self.log)
-                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after network read \(self.buffer.count)", logger: self.log)
+                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - networkbuffer count after network read \(networkBuffer.count)", logger: self.log)
                 }
             }
             catch
@@ -347,15 +349,11 @@ public class TransmissionConnection: Connection
         }
         
         
-        maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count after loop \(self.buffer.count)", logger: self.log)
-        maybeLog(message: "Buffer contents: \(buffer.hex)", logger: self.log)
-        
-        let data = Data(self.buffer[..<size])
-        self.buffer = Data(self.buffer[size...])
-        
-        maybeLog(message: "Network read is delivering \(data.count) bytes: \(data.hex)", logger: self.log)
+        maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - networkbuffer count after loop \(networkBuffer.count)", logger: self.log)
+        maybeLog(message: "Buffer contents: \(networkBuffer.hex)", logger: self.log)
+        maybeLog(message: "Network read is delivering \(networkBuffer.count) bytes: \(networkBuffer.hex)", logger: self.log)
 
-        return data
+        return networkBuffer
     }
 
     func networkWrite(data: Data) -> Bool
