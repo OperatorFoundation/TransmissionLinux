@@ -136,7 +136,7 @@ public class TransmissionConnection: Connection
 
             do
             {
-                data = Data(repeating: 0, count: maxSize)
+                data = Data()
                 let bytesRead = try self.connection.read(into: &data!)
                 if (bytesRead < maxSize)
                 {
