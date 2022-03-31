@@ -64,6 +64,7 @@ public class TransmissionConnection: Connection
     {
         readLock.enter()
 
+        print("TransmissionLinux TransmissionConnection read(size: \(size)) called, buffer size: \(buffer.count)")
         if size == 0
         {
             log?.error("transmission read size was zero")
@@ -75,7 +76,8 @@ public class TransmissionConnection: Connection
         {
             let result = Data(buffer[0..<size])
             buffer = Data(buffer[size..<buffer.count])
-
+            print("Returning a result of size \(result.count)")
+            
             readLock.leave()
             return result
         }
@@ -83,6 +85,7 @@ public class TransmissionConnection: Connection
         guard let data = networkRead(size: size) else
         {
             log?.error("transmission read's network read failed")
+            
             readLock.leave()
             return nil
         }
@@ -92,14 +95,17 @@ public class TransmissionConnection: Connection
         guard size <= buffer.count else
         {
             log?.error("transmission read asked for more bytes than available in the buffer")
+            
             readLock.leave()
             return nil
         }
 
         let result = Data(buffer[0..<size])
         buffer = Data(buffer[size..<buffer.count])
-        readLock.leave()
         
+        print("Returning a result of size \(result.count)")
+        
+        readLock.leave()
         return result
     }
 
@@ -319,10 +325,13 @@ public class TransmissionConnection: Connection
 
     func networkRead(size: Int) -> Data?
     {
+        print("TransmissionLinux TransmissionConnection networkRead(size: \(size)) called, buffer size: \(buffer.count)")
+        
         var networkBuffer = Data()
         
         while networkBuffer.count < size
         {
+            print("network buffer \(networkBuffer.count) is less than requested size \(size), calling connection.read(into:)")
             do
             {
                 let bytesRead = try self.connection.read(into: &networkBuffer)
