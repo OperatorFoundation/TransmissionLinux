@@ -148,6 +148,13 @@ public class TransmissionConnection: Connection
                 readLock.leave()
                 return nil
             }
+            
+            guard bytes.count > 0 else
+            {
+                readLock.leave()
+                print("***TransmissionLinux read(max:) received \(bytes.count)")
+                return nil
+            }
 
             buffer.append(bytes)
 
@@ -158,7 +165,7 @@ public class TransmissionConnection: Connection
 
             readLock.leave()
             
-            print("***TransmissionLinux read(max:) returned \(result.count)")
+            
             return result
         }
     }
