@@ -157,6 +157,8 @@ public class TransmissionConnection: Connection
             buffer = Data(buffer[targetSize..<buffer.count])
 
             readLock.leave()
+            
+            print("***TransmissionLinux read(max:) returned \(result.count)")
             return result
         }
     }
