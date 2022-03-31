@@ -66,7 +66,7 @@ public class TransmissionConnection: Connection
 
         if size == 0
         {
-            if let log = self.log {log.error("transmission read size was zero")}
+            log?.error("transmission read size was zero")
             readLock.leave()
             return nil
         }
@@ -82,7 +82,7 @@ public class TransmissionConnection: Connection
 
         guard let data = networkRead(size: size) else
         {
-            if let log = self.log {log.error("transmission read's network read failed")}
+            log?.error("transmission read's network read failed")
             readLock.leave()
             return nil
         }
@@ -91,7 +91,7 @@ public class TransmissionConnection: Connection
 
         guard size <= buffer.count else
         {
-            if let log = self.log {log.error("transmission read asked for more bytes than available in the buffer")}
+            log?.error("transmission read asked for more bytes than available in the buffer")
             readLock.leave()
             return nil
         }
@@ -312,24 +312,13 @@ public class TransmissionConnection: Connection
 
     func networkRead(size: Int) -> Data?
     {
-        maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead(size: \(size))", logger: self.log)
-        maybeLog(message: "Buffer data before this read was called: \(buffer.count) bytes, \(buffer.hex)", logger: self.log)
-        
         var networkBuffer = Data()
         
         while networkBuffer.count < size
         {
             do
             {
-                //maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - buffer count before network read\(self.buffer.count)", logger: self.log)
                 let bytesRead = try self.connection.read(into: &networkBuffer)
-                
-                if bytesRead > 0
-                {
-                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - actual read size \(bytesRead)", logger: self.log)
-                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - requested read size \(size)", logger: self.log)
-                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - networkbuffer count after network read \(networkBuffer.count)", logger: self.log)
-                }
             }
             catch
             {
@@ -337,11 +326,6 @@ public class TransmissionConnection: Connection
                 return nil
             }
         }
-        
-        
-        maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - networkbuffer count after loop \(networkBuffer.count)", logger: self.log)
-        maybeLog(message: "Buffer contents: \(networkBuffer.hex)", logger: self.log)
-        maybeLog(message: "Network read is delivering \(networkBuffer.count) bytes: \(networkBuffer.hex)", logger: self.log)
 
         return networkBuffer
     }
