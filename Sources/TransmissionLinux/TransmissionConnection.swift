@@ -157,14 +157,12 @@ public class TransmissionConnection: Connection
             }
 
             buffer.append(bytes)
-
             let targetSize = min(maxSize, buffer.count)
-
             let result = Data(buffer[0..<targetSize])
             buffer = Data(buffer[targetSize..<buffer.count])
 
             readLock.leave()
-            
+            print(">>>TransmissionLinux read(max:) returned \(result.count)")
             
             return result
         }
