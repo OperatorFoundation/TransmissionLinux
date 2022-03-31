@@ -38,7 +38,6 @@ public class TransmissionConnection: Connection
 
                 do
                 {
-                    print("Attempting socket.connect with host: \(host) and port: \(port)")
                     try socket.connect(to: host, port: Int32(port))
                 }
                 catch
@@ -63,7 +62,6 @@ public class TransmissionConnection: Connection
 
     public func read(size: Int) -> Data?
     {
-        print("TransmissionLinux read(size: \(size)) called: \(#file), \(#line)")
         readLock.enter()
 
         if size == 0
@@ -79,7 +77,6 @@ public class TransmissionConnection: Connection
             buffer = Data(buffer[size..<buffer.count])
 
             readLock.leave()
-            print("\nTransmission read returned \(result.count) bytes: \(result.hex), buffer: \(buffer.hex)\n")
             return result
         }
 
@@ -101,16 +98,13 @@ public class TransmissionConnection: Connection
 
         let result = Data(buffer[0..<size])
         buffer = Data(buffer[size..<buffer.count])
-
         readLock.leave()
-        print("\nTransmissionLinux read returned \(result.count) bytes: \(result.hex), buffer is \(buffer.count) bytes: \(buffer.hex)\n")
         
         return result
     }
 
     public func read(maxSize: Int) -> Data?
     {
-        print("TransmissionLinux read(maxSize: \(maxSize)) called: \(#file), \(#line)")
         readLock.enter()
 
         if maxSize == 0
@@ -170,8 +164,6 @@ public class TransmissionConnection: Connection
 
     public func write(string: String) -> Bool
     {
-        print("TransmissionLinux write called: \(#file), \(#line)")
-
         writeLock.enter()
 
         let data = string.data
@@ -182,8 +174,6 @@ public class TransmissionConnection: Connection
     
     public func write(data: Data) -> Bool
     {
-        print("TransmissionLinux write called: \(#file), \(#line)")
-
         writeLock.enter()
 
         let success = networkWrite(data: data)
@@ -195,7 +185,6 @@ public class TransmissionConnection: Connection
 
     public func readWithLengthPrefix(prefixSizeInBits: Int) -> Data?
     {
-        print("TransmissionLinux readWithLengthPrefix(prefixSizeInBits: \(prefixSizeInBits)) called: \(#file), \(#line)")
         readLock.enter()
 
         var maybeLength: Int? = nil
