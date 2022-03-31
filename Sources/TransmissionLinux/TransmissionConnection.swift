@@ -335,6 +335,11 @@ public class TransmissionConnection: Connection
             do
             {
                 let bytesRead = try self.connection.read(into: &networkBuffer)
+                
+                if bytesRead == 0
+                {
+                    return nil
+                }
             }
             catch
             {
