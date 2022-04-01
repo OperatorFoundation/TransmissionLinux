@@ -12,33 +12,45 @@ import TransmissionTypes
 public class TransmissionConnection: Connection
 {
     let id: Int
-    var connection: Socket
+    let log: Logger?
+    
+    var tcpConnection: Socket?
+    var udpConnection: Socket?
+    var udpAddress: Socket.Address?
+    
     var connectLock = DispatchGroup()
     var readLock = DispatchGroup()
     var writeLock = DispatchGroup()
-    let log: Logger?
+    
     var buffer: Data = Data()
 
     public init?(host: String, port: Int, type: ConnectionType = .tcp, logger: Logger? = nil)
     {
         self.log = logger
-
+        
         switch type
         {
             case .tcp:
                 guard let socket = try? Socket.create()
                 else
                 {
-                    log?.error("Failed to create a Linux TransmissionConnection: Socket.create() failed.")
-                    print("Failed to create a Linux TransmissionConnection: Socket.create() failed.")
+                    log?.error("Failed to create a Linux TCP TransmissionConnection: Socket.create() failed.")
                     return nil
                 }
-                self.connection = socket
+                self.tcpConnection = socket
                 self.id = Int(socket.socketfd)
-
+                
                 do
                 {
-                    try socket.connect(to: host, port: Int32(port))
+                    if tcpConnection != nil
+                    {
+                        try tcpConnection!.connect(to: host, port: Int32(port))
+                    }
+                    else
+                    {
+                        log?.error("Failed to create a Linux TransmissionConnection.")
+                        return nil
+                    }
                 }
                 catch
                 {
@@ -47,15 +59,33 @@ public class TransmissionConnection: Connection
                     print(error)
                     return nil
                 }
+                
             case .udp:
-                // FIXME
-                return nil
+                // FIXME: Support UDP
+                guard let socket = try? Socket.create(family: .inet, type: .datagram, proto: .udp)
+                else
+                {
+                    log?.error("Failed to create a Linux UDP TransmissionConnection: Socket.create() failed.")
+                    return nil
+                }
+                self.udpConnection = socket
+                self.udpAddress = Socket.createAddress(for: host, on: Int32(port))
+                self.id = Int(socket.socketfd)
         }
     }
 
-    public init(socket: Socket, logger: Logger? = nil)
+    public init(socket: Socket, type: ConnectionType = .tcp, logger: Logger? = nil)
     {
-        self.connection = socket
+        if type == .tcp
+        {
+            self.tcpConnection = socket
+        }
+        else
+        {
+            self.udpConnection = socket
+        }
+        
+        
         self.id = Int(socket.socketfd)
         self.log = nil
     }
@@ -133,14 +163,33 @@ public class TransmissionConnection: Connection
         {
             // Buffer is empty, so we need to do a network read
             var data: Data?
-
+            
             do
             {
                 data = Data()
-                let bytesRead = try self.connection.read(into: &data!)
-                if (bytesRead < maxSize)
+                
+                if let tcpConnection = tcpConnection
                 {
-                    data = Data(data![..<bytesRead])
+                    let bytesRead = try tcpConnection.read(into: &data!)
+                    
+                    if (bytesRead < maxSize)
+                    {
+                        data = Data(data![..<bytesRead])
+                    }
+                }
+                else if let udpConnection = udpConnection
+                {
+                    let (bytesRead, _) = try udpConnection.readDatagram(into: &data!)
+                    
+                    if (bytesRead < maxSize)
+                    {
+                        data = Data(data![..<bytesRead])
+                    }
+                }
+                else
+                {
+                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - Error: There are no valid connections", logger: self.log)
+                    return nil
                 }
             }
             catch
@@ -334,12 +383,30 @@ public class TransmissionConnection: Connection
             print("network buffer \(networkBuffer.count) is less than requested size \(size), calling connection.read(into:)")
             do
             {
-                let bytesRead = try self.connection.read(into: &networkBuffer)
-                
-                if bytesRead == 0 && self.connection.remoteConnectionClosed
+                if let tcpConnection = tcpConnection
                 {
+                    let bytesRead = try tcpConnection.read(into: &networkBuffer)
+                    
+                    if bytesRead == 0 && tcpConnection.remoteConnectionClosed
+                    {
+                        return nil
+                    }
+                }
+                else if let udpConnection = udpConnection
+                {
+                    let (bytesRead, _) = try udpConnection.readDatagram(into: &networkBuffer)
+                    
+                    if bytesRead == 0 && udpConnection.remoteConnectionClosed
+                    {
+                        return nil
+                    }
+                }
+                else
+                {
+                    maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - Error: There are no valid connections", logger: self.log)
                     return nil
                 }
+                
             }
             catch
             {
@@ -355,18 +422,43 @@ public class TransmissionConnection: Connection
     {
         do
         {
-            try self.connection.write(from: data)
-            return true
+            if let tcpConnection = tcpConnection
+            {
+                try tcpConnection.write(from: data)
+                return true
+            }
+            else if let udpConnection = udpConnection, let udpAddress = udpAddress
+            {
+                // TODO: udp
+                try udpConnection.write(from: data, to: udpAddress)
+                
+                return true
+            }
+            else
+            {
+                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkWrite - Error: There are no valid connections", logger: self.log)
+                return false
+            }
+            
         }
         catch
         {
+            maybeLog(message: "TransmissionLinux:TransmissionConnection.networkWrite - Error: \(error)", logger: self.log)
             return false
         }
     }
 
     public func close()
     {
-        self.connection.close()
+        if let tcpConnection = tcpConnection
+        {
+            tcpConnection.close()
+        }
+        else if let udpConnection = udpConnection
+        {
+            udpConnection.close()
+        }
+        
     }
 }
 
