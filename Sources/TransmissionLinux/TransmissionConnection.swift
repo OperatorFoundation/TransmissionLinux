@@ -14,9 +14,10 @@ public class TransmissionConnection: Connection
     let id: Int
     let log: Logger?
     
+    public var udpOutgoingAddress: Socket.Address?
+    
     var tcpConnection: Socket?
     var udpConnection: Socket?
-    var udpOutgoingAddress: Socket.Address?
     var udpIncomingPort: Int? = nil
     
     var connectLock = DispatchGroup()
@@ -24,7 +25,7 @@ public class TransmissionConnection: Connection
     var writeLock = DispatchGroup()
     
     var buffer: Data = Data()
-
+    
     public init?(host: String, port: Int, type: ConnectionType = .tcp, logger: Logger? = nil)
     {
         self.log = logger
@@ -84,7 +85,6 @@ public class TransmissionConnection: Connection
         {
             self.udpConnection = socket
         }
-        
         
         self.id = Int(socket.socketfd)
         self.log = logger
@@ -405,7 +405,12 @@ public class TransmissionConnection: Connection
                 {
                     if let udpPort = udpIncomingPort
                     {
-                        let (bytesRead, _) = try udpConnection.listen(forMessage: &networkBuffer, on: udpPort)
+                        let (bytesRead, address) = try udpConnection.listen(forMessage: &networkBuffer, on: udpPort)
+                        
+                        if udpOutgoingAddress == nil
+                        {
+                            udpOutgoingAddress = address
+                        }
                         
                         if bytesRead == 0 && udpConnection.remoteConnectionClosed
                         {
@@ -414,7 +419,12 @@ public class TransmissionConnection: Connection
                     }
                     else
                     {
-                        let (bytesRead, _) = try udpConnection.readDatagram(into: &networkBuffer)
+                        let (bytesRead, address) = try udpConnection.readDatagram(into: &networkBuffer)
+                        
+                        if udpOutgoingAddress == nil
+                        {
+                            udpOutgoingAddress = address
+                        }
                         
                         if bytesRead == 0 && udpConnection.remoteConnectionClosed
                         {
