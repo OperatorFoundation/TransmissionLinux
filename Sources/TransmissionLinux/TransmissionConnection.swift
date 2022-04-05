@@ -16,7 +16,8 @@ public class TransmissionConnection: Connection
     
     var tcpConnection: Socket?
     var udpConnection: Socket?
-    var udpAddress: Socket.Address?
+    var udpOutgoingAddress: Socket.Address?
+    var udpIncomingPort: Int? = nil
     
     var connectLock = DispatchGroup()
     var readLock = DispatchGroup()
@@ -61,7 +62,6 @@ public class TransmissionConnection: Connection
                 }
                 
             case .udp:
-                // FIXME: Support UDP
                 guard let socket = try? Socket.create(family: .inet, type: .datagram, proto: .udp)
                 else
                 {
@@ -69,7 +69,7 @@ public class TransmissionConnection: Connection
                     return nil
                 }
                 self.udpConnection = socket
-                self.udpAddress = Socket.createAddress(for: host, on: Int32(port))
+                self.udpOutgoingAddress = Socket.createAddress(for: host, on: Int32(port))
                 self.id = Int(socket.socketfd)
         }
     }
@@ -87,7 +87,16 @@ public class TransmissionConnection: Connection
         
         
         self.id = Int(socket.socketfd)
-        self.log = nil
+        self.log = logger
+    }
+    
+    // UDP Server init
+    public init(socket: Socket, port: Int, logger: Logger? = nil)
+    {
+        self.udpConnection = socket
+        self.udpIncomingPort = port
+        self.id = Int(socket.socketfd)
+        self.log = logger
     }
 
     public func read(size: Int) -> Data?
@@ -394,12 +403,25 @@ public class TransmissionConnection: Connection
                 }
                 else if let udpConnection = udpConnection
                 {
-                    let (bytesRead, _) = try udpConnection.readDatagram(into: &networkBuffer)
-                    
-                    if bytesRead == 0 && udpConnection.remoteConnectionClosed
+                    if let udpPort = udpIncomingPort
                     {
-                        return nil
+                        let (bytesRead, _) = try udpConnection.listen(forMessage: &networkBuffer, on: udpPort)
+                        
+                        if bytesRead == 0 && udpConnection.remoteConnectionClosed
+                        {
+                            return nil
+                        }
                     }
+                    else
+                    {
+                        let (bytesRead, _) = try udpConnection.readDatagram(into: &networkBuffer)
+                        
+                        if bytesRead == 0 && udpConnection.remoteConnectionClosed
+                        {
+                            return nil
+                        }
+                    }
+                    
                 }
                 else
                 {
@@ -427,9 +449,8 @@ public class TransmissionConnection: Connection
                 try tcpConnection.write(from: data)
                 return true
             }
-            else if let udpConnection = udpConnection, let udpAddress = udpAddress
+            else if let udpConnection = udpConnection, let udpAddress = udpOutgoingAddress
             {
-                // TODO: udp
                 try udpConnection.write(from: data, to: udpAddress)
                 
                 return true

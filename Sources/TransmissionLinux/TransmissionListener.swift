@@ -15,32 +15,62 @@ public class TransmissionListener: Listener
 {
     let logger: Logger?
     var socket: Socket
+    var udpPort: Int? = nil
+    let type: ConnectionType
     
     public init?(port: Int, type: ConnectionType = .tcp, logger: Logger?)
     {
-        guard let socket = try? Socket.create() else {return nil}
-        self.socket = socket
-
         self.logger = logger
+        self.type = type
         
-        do
+        switch (type)
         {
-            try socket.listen(on: port)
+                
+                
+            case .tcp:
+                guard let socket = try? Socket.create() else {return nil}
+                self.socket = socket
+
+                do
+                {
+                    try socket.listen(on: port)
+                }
+                catch
+                {
+                    return nil
+                }
+                
+            case .udp:
+                guard let socket = try? Socket.create(family: .inet, type: .datagram, proto: .udp)
+                else
+                {
+                    logger?.error("Failed to create a Linux UDP TransmissionListener: Socket.create() failed.")
+                    return nil
+                }
+                
+                self.socket = socket
+                self.udpPort = port
         }
-        catch
-        {
-            return nil
-        }
+        
     }
     
     public func accept() -> Connection
     {
-        while true
+        switch (type)
         {
-            if let newConnection = try? self.socket.acceptClientConnection(invokeDelegate: false)
-            {
-                return TransmissionConnection(socket: newConnection)
-            }
+            case .tcp:
+                while true
+                {
+                    if let newConnection = try? self.socket.acceptClientConnection(invokeDelegate: false)
+                    {
+                        return TransmissionConnection(socket: newConnection)
+                    }
+                }
+            case .udp:
+                while true
+                {
+                    return TransmissionConnection(socket: socket, port: udpPort!, logger: logger)
+                }
         }
     }
 
