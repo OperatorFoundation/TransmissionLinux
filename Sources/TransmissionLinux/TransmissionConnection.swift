@@ -198,6 +198,7 @@ public class TransmissionConnection: Connection
                 else
                 {
                     maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - Error: There are no valid connections", logger: self.log)
+                    readLock.leave()
                     return nil
                 }
             }
@@ -259,16 +260,22 @@ public class TransmissionConnection: Connection
         readLock.enter()
 
         var maybeLength: Int? = nil
-
+        var maybeExtraData: Data? = nil
+        
+        let prefixSize = prefixSizeInBits/8
+        
         switch prefixSizeInBits
         {
             case 8:
-                guard let lengthData = networkRead(size: prefixSizeInBits/8) else
+                guard let data = networkRead(size: prefixSize) else
                 {
                     readLock.leave()
                     return nil
                 }
-
+                
+                let lengthData = data[..<prefixSize]
+                maybeExtraData = data[prefixSize...]
+                
                 guard let boundedLength = UInt8(maybeNetworkData: lengthData) else
                 {
                     readLock.leave()
@@ -276,13 +283,17 @@ public class TransmissionConnection: Connection
                 }
 
                 maybeLength = Int(boundedLength)
+                
             case 16:
-                guard let lengthData = networkRead(size: prefixSizeInBits/8) else
+                guard let data = networkRead(size: prefixSize) else
                 {
                     readLock.leave()
                     return nil
                 }
 
+                let lengthData = data[..<prefixSize]
+                maybeExtraData = data[prefixSize...]
+                
                 guard let boundedLength = UInt16(maybeNetworkData: lengthData) else
                 {
                     readLock.leave()
@@ -291,12 +302,15 @@ public class TransmissionConnection: Connection
 
                 maybeLength = Int(boundedLength)
             case 32:
-                guard let lengthData = networkRead(size: prefixSizeInBits/8) else
+                guard let data = networkRead(size: prefixSize) else
                 {
                     readLock.leave()
                     return nil
                 }
-
+                
+                let lengthData = data[..<prefixSize]
+                maybeExtraData = data[prefixSize...]
+                
                 guard let boundedLength = UInt32(maybeNetworkData: lengthData) else
                 {
                     readLock.leave()
@@ -305,11 +319,14 @@ public class TransmissionConnection: Connection
 
                 maybeLength = Int(boundedLength)
             case 64:
-                guard let lengthData = networkRead(size: prefixSizeInBits/8) else
+                guard let data = networkRead(size: prefixSize) else
                 {
                     readLock.leave()
                     return nil
                 }
+                
+                let lengthData = data[..<prefixSize]
+                maybeExtraData = data[prefixSize...]
 
                 guard let boundedLength = UInt64(maybeNetworkData: lengthData) else
                 {
@@ -328,14 +345,30 @@ public class TransmissionConnection: Connection
             readLock.leave()
             return nil
         }
-
-        guard let data = networkRead(size: length) else
+        
+        print("TransmissionLinux: readLengthWithPrefix got a length of \(length)")
+        
+        if let extraData = maybeExtraData, !extraData.isEmpty
         {
-            readLock.leave()
-            return nil
+            self.buffer.append(extraData)
         }
+        
+        while buffer.count < length
+        {
+            guard let data = networkRead(size: length - buffer.count) else
+            {
+                readLock.leave()
+                return nil
+            }
+            
+            buffer.append(data)
+        }
+        
+        let result = Data(buffer[..<length])
+        buffer = Data(buffer[length...])
 
-        return data
+        readLock.leave()
+        return result
     }
 
     public func writeWithLengthPrefix(data: Data, prefixSizeInBits: Int) -> Bool
@@ -446,11 +479,8 @@ public class TransmissionConnection: Connection
                 return nil
             }
         }
-
-        let result = Data(networkBuffer[..<size])
-        networkBuffer = Data(networkBuffer[size...])
         
-        return result
+        return networkBuffer
     }
 
     func networkWrite(data: Data) -> Bool
