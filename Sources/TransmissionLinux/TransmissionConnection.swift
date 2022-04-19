@@ -447,7 +447,10 @@ public class TransmissionConnection: Connection
             }
         }
 
-        return networkBuffer
+        let result = Data(networkBuffer[..<size])
+        networkBuffer = Data(networkBuffer[size...])
+        
+        return result
     }
 
     func networkWrite(data: Data) -> Bool
