@@ -257,6 +257,8 @@ public class TransmissionConnection: Connection
 
     public func readWithLengthPrefix(prefixSizeInBits: Int) -> Data?
     {
+        print("TransmissionConnection.readWithLengthPrefix() called")
+        
         readLock.enter()
 
         var maybeLength: Int? = nil
@@ -270,6 +272,7 @@ public class TransmissionConnection: Connection
                 guard let data = networkRead(size: prefixSize) else
                 {
                     readLock.leave()
+                    print("TransmissionConnection.readWithLengthPrefix: networkRead(size: 8) returned null.")
                     return nil
                 }
                 
@@ -278,6 +281,7 @@ public class TransmissionConnection: Connection
                 
                 guard let boundedLength = UInt8(maybeNetworkData: lengthData) else
                 {
+                    print("TransmissionConnection.readWithLengthPrefix(8): failed to get the bounded length.")
                     readLock.leave()
                     return nil
                 }
@@ -287,6 +291,7 @@ public class TransmissionConnection: Connection
             case 16:
                 guard let data = networkRead(size: prefixSize) else
                 {
+                    print("TransmissionConnection.readWithLengthPrefix: networkRead(size: 16) returned null.")
                     readLock.leave()
                     return nil
                 }
@@ -296,6 +301,7 @@ public class TransmissionConnection: Connection
                 
                 guard let boundedLength = UInt16(maybeNetworkData: lengthData) else
                 {
+                    print("TransmissionConnection.readWithLengthPrefix(16): failed to get the bounded length.")
                     readLock.leave()
                     return nil
                 }
@@ -304,6 +310,7 @@ public class TransmissionConnection: Connection
             case 32:
                 guard let data = networkRead(size: prefixSize) else
                 {
+                    print("TransmissionConnection.readWithLengthPrefix: networkRead(size: 32) returned null.")
                     readLock.leave()
                     return nil
                 }
@@ -313,6 +320,7 @@ public class TransmissionConnection: Connection
                 
                 guard let boundedLength = UInt32(maybeNetworkData: lengthData) else
                 {
+                    print("TransmissionConnection.readWithLengthPrefix(32): failed to get the bounded length.")
                     readLock.leave()
                     return nil
                 }
@@ -321,6 +329,7 @@ public class TransmissionConnection: Connection
             case 64:
                 guard let data = networkRead(size: prefixSize) else
                 {
+                    print("TransmissionConnection.readWithLengthPrefix: networkRead(size: 64) returned null.")
                     readLock.leave()
                     return nil
                 }
@@ -330,18 +339,21 @@ public class TransmissionConnection: Connection
 
                 guard let boundedLength = UInt64(maybeNetworkData: lengthData) else
                 {
+                    print("TransmissionConnection.readWithLengthPrefix(64): failed to get the bounded length.")
                     readLock.leave()
                     return nil
                 }
 
                 maybeLength = Int(boundedLength)
             default:
+                print("TransmissionConnection.readWithLengthPrefix: \(prefixSizeInBits) is invalid.")
                 readLock.leave()
                 return nil
         }
 
         guard let length = maybeLength else
         {
+            print("TransmissionConnection.readWithLengthPrefix: failed to determine the correct length.")
             readLock.leave()
             return nil
         }
@@ -366,7 +378,8 @@ public class TransmissionConnection: Connection
         
         let result = Data(buffer[..<length])
         buffer = Data(buffer[length...])
-
+        
+        print("TransmissionConnection.readWithLengthPrefix: returning \(result.count) bytes.")
         readLock.leave()
         return result
     }
