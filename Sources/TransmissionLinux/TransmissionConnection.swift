@@ -416,7 +416,7 @@ public class TransmissionConnection: Connection
 
     func networkRead(size: Int) -> Data?
     {
-        print("TransmissionLinux TransmissionConnection networkRead(size: \(size)) called, buffer size: \(buffer.count)")
+        print("TransmissionLinux.TransmissionConnection.networkRead(size: \(size)) called, buffer size: \(buffer.count)")
         
         var networkBuffer = Data()
         
@@ -468,6 +468,7 @@ public class TransmissionConnection: Connection
                 }
                 else
                 {
+                    print("TransmissionLinux:TransmissionConnection.networkRead - Error: There are no valid connections")
                     maybeLog(message: "TransmissionLinux:TransmissionConnection.networkRead - Error: There are no valid connections", logger: self.log)
                     return nil
                 }
@@ -480,34 +481,41 @@ public class TransmissionConnection: Connection
             }
         }
         
+        print("TransmissionLinux:TransmissionConnection.networkRead: complete, network buffer size - \(networkBuffer.count)")
         return networkBuffer
     }
 
     func networkWrite(data: Data) -> Bool
     {
+        print("TransmissionLinux:TransmissionConnection.networkWrite() called.")
         do
         {
             if let tcpConnection = tcpConnection
             {
                 try tcpConnection.write(from: data)
+                print("TransmissionConnection.networkWrite: returned from tcpConnection.write")
+                
                 return true
             }
             else if let udpConnection = udpConnection, let udpAddress = udpOutgoingAddress
             {
                 try udpConnection.write(from: data, to: udpAddress)
+                print("TransmissionConnection.networkWrite: returned from udpConnection.write")
                 
                 return true
             }
             else
             {
-                maybeLog(message: "TransmissionLinux:TransmissionConnection.networkWrite - Error: There are no valid connections", logger: self.log)
+                print("TransmissionConnection.networkWrite - Error: There are no valid connections")
+                maybeLog(message: "TransmissionConnection.networkWrite - Error: There are no valid connections", logger: self.log)
                 return false
             }
             
         }
         catch
         {
-            maybeLog(message: "TransmissionLinux:TransmissionConnection.networkWrite - Error: \(error)", logger: self.log)
+            print("TransmissionConnection.networkWrite - Error: \(error)")
+            maybeLog(message: "TransmissionConnection.networkWrite - Error: \(error)", logger: self.log)
             return false
         }
     }
