@@ -435,7 +435,7 @@ public class TransmissionConnection: Connection
         
         while networkBuffer.count < size
         {
-            print("network buffer \(networkBuffer.count) is less than requested size \(size), calling connection.read(into:)")
+            print("TransmissionLinux.TransmissionConnection.networkRead: network buffer \(networkBuffer.count) is less than requested size \(size), calling connection.read(into:)")
             do
             {
                 if let tcpConnection = tcpConnection
