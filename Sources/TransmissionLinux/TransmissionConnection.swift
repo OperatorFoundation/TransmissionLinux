@@ -103,7 +103,6 @@ public class TransmissionConnection: Connection
     {
         readLock.enter()
 
-        print("TransmissionLinux TransmissionConnection read(size: \(size)) called, buffer size: \(buffer.count)")
         if size == 0
         {
             log?.error("transmission read size was zero")
@@ -115,8 +114,6 @@ public class TransmissionConnection: Connection
         {
             let result = Data(buffer[0..<size])
             buffer = Data(buffer[size..<buffer.count])
-            print("Returning a result of size \(result.count)")
-            
             readLock.leave()
             return result
         }
@@ -141,9 +138,6 @@ public class TransmissionConnection: Connection
 
         let result = Data(buffer[0..<size])
         buffer = Data(buffer[size..<buffer.count])
-        
-        print("Returning a result of size \(result.count)")
-        
         readLock.leave()
         return result
     }
@@ -217,7 +211,6 @@ public class TransmissionConnection: Connection
             guard bytes.count > 0 else
             {
                 readLock.leave()
-                print("***TransmissionLinux read(max:) received \(bytes.count)")
                 return nil
             }
 
@@ -227,8 +220,6 @@ public class TransmissionConnection: Connection
             buffer = Data(buffer[targetSize..<buffer.count])
 
             readLock.leave()
-            print(">>>TransmissionLinux read(max:) returned \(result.count)")
-            
             return result
         }
     }
@@ -257,8 +248,6 @@ public class TransmissionConnection: Connection
 
     public func readWithLengthPrefix(prefixSizeInBits: Int) -> Data?
     {
-        print("TransmissionConnection.readWithLengthPrefix() called")
-        
         readLock.enter()
 
         var maybeLength: Int? = nil
@@ -379,7 +368,6 @@ public class TransmissionConnection: Connection
         let result = Data(buffer[..<length])
         buffer = Data(buffer[length...])
         
-        print("TransmissionConnection.readWithLengthPrefix: returning \(result.count) bytes.")
         readLock.leave()
         return result
     }
@@ -429,8 +417,6 @@ public class TransmissionConnection: Connection
 
     func networkRead(size: Int) -> Data?
     {
-        print("TransmissionLinux.TransmissionConnection.networkRead(size: \(size)) called, buffer size: \(buffer.count)")
-        
         var networkBuffer = Data()
         
         while networkBuffer.count < size
@@ -494,26 +480,22 @@ public class TransmissionConnection: Connection
             }
         }
         
-        print("TransmissionLinux:TransmissionConnection.networkRead: complete, network buffer size - \(networkBuffer.count)")
         return networkBuffer
     }
 
     func networkWrite(data: Data) -> Bool
     {
-        print("TransmissionLinux:TransmissionConnection.networkWrite() called.")
         do
         {
             if let tcpConnection = tcpConnection
             {
                 try tcpConnection.write(from: data)
-                print("TransmissionConnection.networkWrite: returned from tcpConnection.write")
                 
                 return true
             }
             else if let udpConnection = udpConnection, let udpAddress = udpOutgoingAddress
             {
                 try udpConnection.write(from: data, to: udpAddress)
-                print("TransmissionConnection.networkWrite: returned from udpConnection.write")
                 
                 return true
             }
