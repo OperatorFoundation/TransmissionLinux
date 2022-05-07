@@ -28,7 +28,7 @@ public class TransmissionListener: Listener
             case .tcp:
                 guard let socket = try? Socket.create() else
                 {
-                    logger?.error("Failed to create a Linux TCP TransmissionListener: Socket.create() failed.")
+                    logger?.error("TransmissionLinux: Failed to create a Linux TCP TransmissionListener: Socket.create() failed.")
                     return nil
                 }
 
@@ -46,7 +46,7 @@ public class TransmissionListener: Listener
                 guard let socket = try? Socket.create(family: .inet, type: .datagram, proto: .udp)
                 else
                 {
-                    logger?.error("Failed to create a Linux UDP TransmissionListener: Socket.create() failed.")
+                    logger?.error("TransmissionLinux: Failed to create a Linux UDP TransmissionListener: Socket.create() failed.")
                     return nil
                 }
                 
@@ -78,6 +78,7 @@ public class TransmissionListener: Listener
 
     public func close()
     {
+        logger?.debug("TransmissionLinux: close() called.")
         self.socket.close()
     }
 }
