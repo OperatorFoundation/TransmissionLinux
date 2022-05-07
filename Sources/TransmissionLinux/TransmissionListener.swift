@@ -25,15 +25,17 @@ public class TransmissionListener: Listener
         
         switch (type)
         {
-                
-                
             case .tcp:
-                guard let socket = try? Socket.create() else {return nil}
-                self.socket = socket
+                guard let socket = try? Socket.create() else
+                {
+                    logger?.error("Failed to create a Linux TCP TransmissionListener: Socket.create() failed.")
+                    return nil
+                }
 
                 do
                 {
                     try socket.listen(on: port)
+                    self.socket = socket
                 }
                 catch
                 {
