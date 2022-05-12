@@ -142,7 +142,9 @@ public class TransmissionConnection: Connection
 
     public func read(maxSize: Int) -> Data?
     {
+        print("TransmissionLinux: Entering readLock")
         readLock.enter()
+        print("TransmissionLinux: readLock entered")
 
         if maxSize == 0
         {
@@ -172,7 +174,9 @@ public class TransmissionConnection: Connection
                 
                 if let tcpConnection = tcpConnection
                 {
+                    print("TransmissionLinux: Calling tcpConnection.read")
                     let bytesRead = try tcpConnection.read(into: &data!)
+                    print("TransmissionLinux: Returned from tcpConnection.read")
                     
                     if (bytesRead < maxSize)
                     {
