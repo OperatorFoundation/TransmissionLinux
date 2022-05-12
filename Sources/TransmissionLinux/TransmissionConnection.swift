@@ -176,7 +176,7 @@ public class TransmissionConnection: Connection
                 {
                     print("TransmissionLinux: Calling tcpConnection.read")
                     let bytesRead = try tcpConnection.read(into: &data!)
-                    print("TransmissionLinux: Returned from tcpConnection.read")
+                    print("TransmissionLinux: Returned from tcpConnection.read with \(bytesRead) bytes")
                     
                     if (bytesRead < maxSize)
                     {
