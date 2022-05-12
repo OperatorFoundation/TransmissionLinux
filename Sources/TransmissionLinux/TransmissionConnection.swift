@@ -239,6 +239,7 @@ public class TransmissionConnection: Connection
         let success = write(data: data)
         writeLock.leave()
         
+        maybeLog(message: "TransmissionLinux: TransmissionConnection.networkWrite -> write(string:), success: \(success)", logger: self.log)
         return success
     }
     
@@ -248,6 +249,7 @@ public class TransmissionConnection: Connection
         let success = networkWrite(data: data)
         writeLock.leave()
 
+        maybeLog(message: "TransmissionLinux: TransmissionConnection.networkWrite -> write(data:), success: \(success)", logger: self.log)
         return success
     }
 
