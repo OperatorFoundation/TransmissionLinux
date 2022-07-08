@@ -469,14 +469,12 @@ public class TransmissionConnection: Connection
                             return nil
                         }
                     }
-                    
                 }
                 else
                 {
                     maybeLog(message: "TransmissionLinux: TransmissionConnection.networkRead - Error: There are no valid connections", logger: self.log)
                     return nil
                 }
-                
             }
             catch
             {

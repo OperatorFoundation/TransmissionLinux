@@ -63,10 +63,16 @@ public class TransmissionListener: Listener
             case .tcp:
                 while true
                 {
-                    if let newConnection = try? self.socket.acceptClientConnection(invokeDelegate: false)
+                    do
                     {
+                        let newConnection = try self.socket.acceptClientConnection(invokeDelegate: false)
                         return TransmissionConnection(socket: newConnection)
                     }
+                    catch
+                    {
+                        print("Failed to accept a tcp connection, error: \(error)")
+                    }
+                    
                 }
             case .udp:
                 while true
