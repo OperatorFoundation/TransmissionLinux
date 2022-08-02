@@ -291,7 +291,7 @@ public class TransmissionConnection: Connection
                     readLock.leave()
                     return nil
                 }
-
+                
                 let lengthData = data[..<prefixSize]
                 maybeExtraData = data[prefixSize...]
                 
@@ -303,6 +303,8 @@ public class TransmissionConnection: Connection
                 }
 
                 maybeLength = Int(boundedLength)
+                print("TransmissionConnection.readWithLengthPrefix(16), message size: \(maybeLength) ")
+                print("Message size bytes + data: \(lengthData.hex) \(maybeExtraData?.hex)")
             case 32:
                 guard let data = networkRead(size: prefixSize) else
                 {
