@@ -293,7 +293,7 @@ public class TransmissionConnection: Connection
                 maybeLength = Int(boundedLength)
                 
             case 16:
-                
+                print(" * Attempting to convert length data to a bounded length (UInt16).\n * Data: \(lengthData.hex)")
                 guard let boundedLength = UInt16(maybeNetworkData: lengthData) else
                 {
                     maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix(16) - failed to get the bounded length.", logger: self.log)
