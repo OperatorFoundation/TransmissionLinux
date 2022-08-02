@@ -259,22 +259,30 @@ public class TransmissionConnection: Connection
 
         var maybeLength: Int? = nil
         var maybeExtraData: Data? = nil
-        
         let prefixSize = prefixSizeInBits/8
+        var lengthData: Data
+        
+        if buffer.count >= prefixSize
+        {
+            lengthData = Data(buffer[..<prefixSize])
+            buffer = Data(buffer[prefixSize...])
+        }
+        else
+        {
+            guard let data = networkRead(size: prefixSize - buffer.count) else
+            {
+                maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix - networkRead returned null.", logger: self.log)
+                readLock.leave()
+                return nil
+            }
+            
+            lengthData = data[..<prefixSize]
+            maybeExtraData = data[prefixSize...]
+        }
         
         switch prefixSizeInBits
         {
             case 8:
-                guard let data = networkRead(size: prefixSize) else
-                {
-                    readLock.leave()
-                    maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix - networkRead(size: 8) returned null.", logger: self.log)
-                    return nil
-                }
-                
-                let lengthData = data[..<prefixSize]
-                maybeExtraData = data[prefixSize...]
-                
                 guard let boundedLength = UInt8(maybeNetworkData: lengthData) else
                 {
                     maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix(8) - failed to get the bounded length.", logger: self.log)
@@ -285,15 +293,6 @@ public class TransmissionConnection: Connection
                 maybeLength = Int(boundedLength)
                 
             case 16:
-                guard let data = networkRead(size: prefixSize) else
-                {
-                    maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix - networkRead(size: 16) returned null.", logger: self.log)
-                    readLock.leave()
-                    return nil
-                }
-                
-                let lengthData = data[..<prefixSize]
-                maybeExtraData = data[prefixSize...]
                 
                 guard let boundedLength = UInt16(maybeNetworkData: lengthData) else
                 {
@@ -304,18 +303,8 @@ public class TransmissionConnection: Connection
 
                 maybeLength = Int(boundedLength)
                 print("TransmissionConnection.readWithLengthPrefix(16), message size: \(maybeLength) ")
-                print("Message size bytes + data: \(lengthData.hex) \(maybeExtraData?.hex)")
+                print("Message size bytes + extra data from length read: \(lengthData.hex) \(maybeExtraData?.hex)")
             case 32:
-                guard let data = networkRead(size: prefixSize) else
-                {
-                    maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix - networkRead(size: 32) returned null.", logger: self.log)
-                    readLock.leave()
-                    return nil
-                }
-                
-                let lengthData = data[..<prefixSize]
-                maybeExtraData = data[prefixSize...]
-                
                 guard let boundedLength = UInt32(maybeNetworkData: lengthData) else
                 {
                     maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix(32) - failed to get the bounded length.", logger: self.log)
@@ -325,16 +314,6 @@ public class TransmissionConnection: Connection
 
                 maybeLength = Int(boundedLength)
             case 64:
-                guard let data = networkRead(size: prefixSize) else
-                {
-                    maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix - networkRead(size: 64) returned null.", logger: self.log)
-                    readLock.leave()
-                    return nil
-                }
-                
-                let lengthData = data[..<prefixSize]
-                maybeExtraData = data[prefixSize...]
-
                 guard let boundedLength = UInt64(maybeNetworkData: lengthData) else
                 {
                     maybeLog(message: "TransmissionLinux: TransmissionConnection.readWithLengthPrefix(64) - failed to get the bounded length.", logger: self.log)
@@ -358,6 +337,7 @@ public class TransmissionConnection: Connection
                 
         if let extraData = maybeExtraData, !extraData.isEmpty
         {
+            print("Adding extra data from length read to the buffer (current buffer size is \(buffer.count))")
             self.buffer.append(extraData)
         }
         
