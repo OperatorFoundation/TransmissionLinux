@@ -35,7 +35,12 @@ let package = Package(
         ),
         .testTarget(
             name: "TransmissionLinuxTests",
-            dependencies: ["TransmissionLinux", "Datable"]),
+            dependencies: [
+                "Datable",
+                "Socket",
+                "TransmissionLinux",
+          ]
+        ),
     ],
     swiftLanguageVersions: [.v5]
 )

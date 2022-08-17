@@ -1,10 +1,21 @@
-import XCTest
-import Foundation
-@testable import TransmissionLinux
 import Logging
+import Foundation
+import XCTest
+
+import Socket
+@testable import TransmissionLinux
 
 final class TransmissionTests: XCTestCase
 {
+    public func testBlueSocket() throws
+    {
+        let socket1 = try Socket.create()
+        try socket1.listen(on: 1234)
+
+        let socket2 = try Socket.create()
+        try socket2.listen(on: 1234)
+    }
+
     public func testListenConflict()
     {
         let listener1 = TransmissionListener(port: 1234, logger: nil)
@@ -13,6 +24,8 @@ final class TransmissionTests: XCTestCase
         let listener2 = TransmissionListener(port: 1234, logger: nil)
         XCTAssertNil(listener2)
     }
+
+    public
 
     func testUDPConnection()
     {
