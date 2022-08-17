@@ -34,7 +34,7 @@ public class TransmissionListener: Listener
 
                 do
                 {
-                    try socket.listen(on: port)
+                    try socket.listen(on: port, allowPortReuse: false)
                     self.socket = socket
                 }
                 catch
