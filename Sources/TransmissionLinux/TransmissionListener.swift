@@ -25,10 +25,12 @@ public class TransmissionListener: Listener
         
         switch (type)
         {
-                
-                
             case .tcp:
-                guard let socket = try? Socket.create() else {return nil}
+                guard let socket = try? Socket.create() else
+                {
+                    return nil
+
+                }
                 self.socket = socket
 
                 do
@@ -37,6 +39,7 @@ public class TransmissionListener: Listener
                 }
                 catch
                 {
+                    print(error)
                     return nil
                 }
                 

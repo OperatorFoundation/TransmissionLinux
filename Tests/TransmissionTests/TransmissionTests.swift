@@ -61,6 +61,15 @@ final class TransmissionTests: XCTestCase
         
         runClient()
     }
+
+    public func testListenConflict()
+    {
+        let listener1 = TransmissionListener(port: 1234)
+        XCTAssertNotNil(listener1)
+
+        let listener2 = TransmissionListener(port: 1234)
+        XCTAssertNil(listener2)
+    }
     
     func runServer(_ lock: DispatchGroup)
     {
