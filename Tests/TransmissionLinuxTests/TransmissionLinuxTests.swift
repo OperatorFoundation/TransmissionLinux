@@ -5,6 +5,15 @@ import Logging
 
 final class TransmissionTests: XCTestCase
 {
+    public func testListenConflict()
+    {
+        let listener1 = TransmissionListener(port: 1234, logger: nil)
+        XCTAssertNotNil(listener1)
+
+        let listener2 = TransmissionListener(port: 1234, logger: nil)
+        XCTAssertNil(listener2)
+    }
+
     func testUDPConnection()
     {
         let lock = DispatchGroup()
