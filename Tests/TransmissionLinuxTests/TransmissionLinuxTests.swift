@@ -10,10 +10,10 @@ final class TransmissionTests: XCTestCase
     public func testBlueSocket() throws
     {
         let socket1 = try Socket.create()
-        try socket1.listen(on: 1234)
+        XCTAssertNoThrow(try socket1.listen(on: 1234))
 
         let socket2 = try Socket.create()
-        try socket2.listen(on: 1234)
+        XCTAssertThrowsError(try socket2.listen(on: 1234))
     }
 
     public func testListenConflict()
