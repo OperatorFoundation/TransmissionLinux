@@ -39,7 +39,7 @@ public class TransmissionListener: Listener
                 }
                 catch
                 {
-                    print(error)
+                    logger?.error("TransmissionLinux: TransmissionListener.init - Socket listen failed: \(error)")
                     return nil
                 }
                 
@@ -47,7 +47,7 @@ public class TransmissionListener: Listener
                 guard let socket = try? Socket.create(family: .inet, type: .datagram, proto: .udp)
                 else
                 {
-                    logger?.error("TransmissionLinux: Failed to create a Linux UDP TransmissionListener: Socket.create() failed.")
+                    logger?.error("TransmissionLinux: TransmissionListener.init - Failed to create a Linux UDP TransmissionListener: Socket.create() failed.")
                     return nil
                 }
                 
@@ -71,7 +71,7 @@ public class TransmissionListener: Listener
                     }
                     catch
                     {
-                        print("Failed to accept a tcp connection, error: \(error)")
+                        logger?.error("TransmissionLinux: TransmissionListener.accept - Failed to accept a tcp connection, error: \(error)")
                     }
                     
                 }
