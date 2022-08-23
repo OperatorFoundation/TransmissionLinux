@@ -122,6 +122,12 @@ public class TransmissionConnection: Connection
             readLock.leave()
             return nil
         }
+        
+        guard data.count > 0 else
+        {
+            readLock.leave()
+            return nil
+        }
 
         buffer.append(data)
 
@@ -135,6 +141,7 @@ public class TransmissionConnection: Connection
         buffer = Data(buffer[size..<buffer.count])
         log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
         readLock.leave()
+        
         return result
     }
 
@@ -400,8 +407,14 @@ public class TransmissionConnection: Connection
 
     private func networkRead(size: Int) -> Data?
     {
-        var networkBuffer = Data()
+        guard size > 0 else
+        {
+            log?.error("TransmissionLinux: TransmissionConnection - network read requested for a read size of 0")
+            return nil
+        }
         
+        var networkBuffer = Data()
+
         while networkBuffer.count < size
         {
             do
@@ -448,13 +461,13 @@ public class TransmissionConnection: Connection
                 }
                 else
                 {
-                    log?.debug("TransmissionLinux: TransmissionConnection.networkRead - Error: There are no valid connections")
+                    log?.error("TransmissionLinux: TransmissionConnection.networkRead - Error: There are no valid connections")
                     return nil
                 }
             }
             catch
             {
-                log?.debug("TransmissionLinux: TransmissionConnection.networkRead - Error: \(error)")
+                log?.error("TransmissionLinux: TransmissionConnection.networkRead - Error: \(error)")
                 return nil
             }
         }
