@@ -294,7 +294,7 @@ public class TransmissionConnection: Connection
                 maybeLength = Int(boundedLength)
                 
             case 16:
-                log?.debug(" * Attempting to convert length data to a bounded length (UInt16).\n * Data: \(lengthData.hex)")
+                log?.debug("TransmissionLinux: Attempting to convert length data to a bounded length (UInt16).\n * Data: \(lengthData.hex)")
                 guard let boundedLength = UInt16(maybeNetworkData: lengthData) else
                 {
                     log?.debug("TransmissionLinux: TransmissionConnection.readWithLengthPrefix(16) - failed to get the bounded length.")
@@ -303,8 +303,7 @@ public class TransmissionConnection: Connection
                 }
 
                 maybeLength = Int(boundedLength)
-                log?.debug("TransmissionConnection.readWithLengthPrefix(16), message size: \(maybeLength) ")
-                log?.debug("Message size bytes + extra data from length read: \(lengthData.hex) \(maybeExtraData?.hex)")
+                log?.debug("TransmissionLinux: TransmissionConnection.readWithLengthPrefix(16), message size: \(maybeLength) ")
             case 32:
                 guard let boundedLength = UInt32(maybeNetworkData: lengthData) else
                 {
@@ -472,7 +471,6 @@ public class TransmissionConnection: Connection
             }
         }
         
-        // maybeLog(message: "TransmissionLinux: TransmissionConnection.networkRead(size: \(size)) -> returned \(networkBuffer.count) bytes.", logger: self.log)
         return networkBuffer
     }
 
