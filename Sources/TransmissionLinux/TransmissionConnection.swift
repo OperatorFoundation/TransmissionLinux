@@ -303,7 +303,7 @@ public class TransmissionConnection: Connection
                 }
 
                 maybeLength = Int(boundedLength)
-                log?.debug("TransmissionLinux: TransmissionConnection.readWithLengthPrefix(16), message size: \(maybeLength) ")
+                log?.debug("TransmissionLinux: TransmissionConnection.readWithLengthPrefix(16), message size: \(maybeLength ?? 0) ")
             case 32:
                 guard let boundedLength = UInt32(maybeNetworkData: lengthData) else
                 {
