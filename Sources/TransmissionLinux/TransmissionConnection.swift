@@ -256,7 +256,9 @@ public class TransmissionConnection: Connection
 
     public func readWithLengthPrefix(prefixSizeInBits: Int) -> Data?
     {
+        log?.debug("TransmissionLinux: readWithLengthPrefix entering lock...")
         readLock.enter()
+        log?.debug("TransmissionLinux: entered readWithLengthPrefix ")
 
         guard let result = TransmissionTypes.readWithLengthPrefix(prefixSizeInBits: prefixSizeInBits, connection: self) else
         {
