@@ -163,11 +163,13 @@ public class TransmissionConnection: Connection
             return result
         }
 
+        print("TransmissionLinux: unsafeRead calling networkRead()")
         guard let data = networkRead(size: size) else
         {
             print("TransmissionLinux: unsafeRead received nil response from networkRead()")
             return nil
         }
+        print("TransmissionLinux: unsafeRead returned from networkRead()")
         
         guard data.count > 0 else
         {
