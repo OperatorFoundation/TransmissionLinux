@@ -144,6 +144,46 @@ public class TransmissionConnection: Connection
         
         return result
     }
+    
+    public func unsafeRead(size: Int) -> Data?
+    {
+        if size == 0
+        {
+            log?.error("TransmissionLinux: requested read size was zero")
+            return nil
+        }
+
+        if size <= buffer.count
+        {
+            let result = Data(buffer[0..<size])
+            buffer = Data(buffer[size..<buffer.count])
+            log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+            return result
+        }
+
+        guard let data = networkRead(size: size) else
+        {
+            return nil
+        }
+        
+        guard data.count > 0 else
+        {
+            return nil
+        }
+
+        buffer.append(data)
+
+        guard size <= buffer.count else
+        {
+            return nil
+        }
+
+        let result = Data(buffer[0..<size])
+        buffer = Data(buffer[size..<buffer.count])
+        log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+        
+        return result
+    }
 
     public func read(maxSize: Int) -> Data?
     {
