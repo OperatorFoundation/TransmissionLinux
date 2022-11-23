@@ -147,7 +147,7 @@ public class TransmissionConnection: Connection
     
     public func unsafeRead(size: Int) -> Data?
     {
-        print("TransmissionLinux: unsafeRead(size: Int)")
+        print("TransmissionLinux: unsafeRead(size: \(size))")
         
         if size == 0
         {
@@ -335,7 +335,7 @@ public class TransmissionConnection: Connection
 
     private func networkRead(size: Int) -> Data?
     {
-        print("TransmissionLinux.TransmissionConnection: networkRead(size: \(size)")
+        print("TransmissionLinux.TransmissionConnection: networkRead(size: \(size))")
         
         guard size > 0 else
         {
@@ -353,7 +353,7 @@ public class TransmissionConnection: Connection
                 {
                     print("TransmissionLinux.TransmissionConnection: calling tcpConnection.read")
                     let bytesRead = try tcpConnection.read(into: &networkBuffer)
-                    print("TransmissionLinux.TransmissionConnection: tcpConnection.read read \(bytesRead)")
+                    print("TransmissionLinux.TransmissionConnection: tcpConnection.read read \(bytesRead) bytes")
                     
                     if bytesRead == 0 && tcpConnection.remoteConnectionClosed
                     {
