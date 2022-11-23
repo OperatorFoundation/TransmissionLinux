@@ -335,6 +335,8 @@ public class TransmissionConnection: Connection
 
     private func networkRead(size: Int) -> Data?
     {
+        print("TransmissionLinux.TransmissionConnection: networkRead(size: \(size)")
+        
         guard size > 0 else
         {
             print("TransmissionLinux: TransmissionConnection - network read requested for a read size of 0")
@@ -349,7 +351,9 @@ public class TransmissionConnection: Connection
             {
                 if let tcpConnection = tcpConnection
                 {
+                    print("TransmissionLinux.TransmissionConnection: calling tcpConnection.read")
                     let bytesRead = try tcpConnection.read(into: &networkBuffer)
+                    print("TransmissionLinux.TransmissionConnection: tcpConnection.read read \(bytesRead)")
                     
                     if bytesRead == 0 && tcpConnection.remoteConnectionClosed
                     {
@@ -360,7 +364,9 @@ public class TransmissionConnection: Connection
                 {
                     if let udpPort = udpIncomingPort
                     {
+                        print("TransmissionLinux.TransmissionConnection: calling udpConnection.listen")
                         let (bytesRead, address) = try udpConnection.listen(forMessage: &networkBuffer, on: udpPort)
+                        print("TransmissionLinux.TransmissionConnection: udpConnection.listen read \(bytesRead) bytes.")
                         
                         if udpOutgoingAddress == nil
                         {
@@ -374,7 +380,9 @@ public class TransmissionConnection: Connection
                     }
                     else
                     {
+                        print("TransmissionLinux.TransmissionConnection: calling udpConnection.readDatagram")
                         let (bytesRead, address) = try udpConnection.readDatagram(into: &networkBuffer)
+                        print("TransmissionLinux.TransmissionConnection: udpConnection.readDatagram read \(bytesRead) bytes")
                         
                         if udpOutgoingAddress == nil
                         {
@@ -389,13 +397,13 @@ public class TransmissionConnection: Connection
                 }
                 else
                 {
-                    print("TransmissionLinux: TransmissionConnection.networkRead - Error: There are no valid connections")
+                    print("TransmissionLinux.TransmissionConnection: networkRead - Error: There are no valid connections")
                     return nil
                 }
             }
             catch
             {
-                print("TransmissionLinux: TransmissionConnection.networkRead - Error: \(error)")
+                print("TransmissionLinux.TransmissionConnection: networkRead - Error: \(error)")
                 return nil
             }
         }
