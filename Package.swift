@@ -18,13 +18,15 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/OperatorFoundation/TransmissionTypes", branch: "main"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
+
+        .package(name: "Socket", url: "https://github.com/OperatorFoundation/BlueSocket", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Chord", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Datable", branch: "main"),
-        .package(name: "Socket", url: "https://github.com/OperatorFoundation/BlueSocket", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Net", branch: "main"),
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
-        .package(url: "https://github.com/OperatorFoundation/SwiftHexTools.git", branch: "main")
+        .package(url: "https://github.com/OperatorFoundation/SwiftHexTools.git", branch: "main"),
+        .package(url: "https://github.com/OperatorFoundation/TransmissionBase", branch: "main"),
+        .package(url: "https://github.com/OperatorFoundation/TransmissionTypes", branch: "main"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -32,8 +34,15 @@ let package = Package(
         .target(
             name: "TransmissionLinux",
             dependencies: [
-                "TransmissionTypes", "Chord", "Socket", "Datable", "Net", "SwiftHexTools",
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+
+                "Chord",
+                "Datable",
+                "Net",
+                "Socket",
+                "SwiftHexTools",
+                "TransmissionBase",
+                "TransmissionTypes",
             ]
         ),
         .testTarget(
