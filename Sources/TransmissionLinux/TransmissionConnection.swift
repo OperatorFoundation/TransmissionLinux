@@ -146,9 +146,7 @@ public class TransmissionConnection: Connection
     }
     
     public func unsafeRead(size: Int) -> Data?
-    {
-        print("TransmissionLinux: unsafeRead(size: \(size))")
-        
+    {        
         if size == 0
         {
             print("TransmissionLinux: requested read size was zero")
@@ -163,13 +161,11 @@ public class TransmissionConnection: Connection
             return result
         }
 
-        print("TransmissionLinux: unsafeRead calling networkRead()")
         guard let data = networkRead(size: size) else
         {
             print("TransmissionLinux: unsafeRead received nil response from networkRead()")
             return nil
         }
-        print("TransmissionLinux: unsafeRead returned from networkRead()")
         
         guard data.count > 0 else
         {
@@ -187,7 +183,6 @@ public class TransmissionConnection: Connection
 
         let result = Data(buffer[0..<size])
         buffer = Data(buffer[size..<buffer.count])
-        print("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
         
         return result
     }
