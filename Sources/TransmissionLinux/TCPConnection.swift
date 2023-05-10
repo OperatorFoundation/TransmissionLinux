@@ -52,7 +52,7 @@ public class TCPConnection: IPConnection
         try self.socket.write(from: data)
     }
 
-    public override func networkRead(size: Int) throws -> Data
+    public override func networkRead(size: Int, timeoutSeconds: Int = 10) throws -> Data
     {
         print("TransmissionLinux.TransmissionConnection: networkRead(size: \(size))")
 
@@ -72,7 +72,7 @@ public class TCPConnection: IPConnection
 
             if bytesRead == 0 && self.socket.remoteConnectionClosed
             {
-                throw TCPConnectionError.closeed
+                throw TCPConnectionError.closed
             }
         }
 
@@ -82,5 +82,5 @@ public class TCPConnection: IPConnection
 
 public enum TCPConnectionError: Error
 {
-    case closeed
+    case closed
 }
