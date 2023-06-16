@@ -40,10 +40,13 @@ let package = Package(
         .testTarget(
             name: "TransmissionLinuxTests",
             dependencies: [
+                "Chord",
                 "Datable",
-                "Socket",
-                "TransmissionLinux",
-                .product(name: "Socket", package: "BlueSocket")]),
+                "Net",
+                "SwiftHexTools",
+                "TransmissionBase",
+                "TransmissionTypes",
+                "TransmissionLinux"]),
     ],
     swiftLanguageVersions: [.v5]
 )
