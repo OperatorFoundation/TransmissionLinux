@@ -16,13 +16,13 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.3"),
-        .package(url: "https://github.com/OperatorFoundation/BlueSocket", branch: "main"),
-        .package(url: "https://github.com/OperatorFoundation/Chord", branch: "main"),
-        .package(url: "https://github.com/OperatorFoundation/Datable", branch: "main"),
-        .package(url: "https://github.com/OperatorFoundation/Net", branch: "main"),
-        .package(url: "https://github.com/OperatorFoundation/SwiftHexTools.git", branch: "main"),
-        .package(url: "https://github.com/OperatorFoundation/TransmissionBase", branch: "main"),
-        .package(url: "https://github.com/OperatorFoundation/TransmissionTypes", branch: "main"),
+        .package(url: "https://github.com/OperatorFoundation/BlueSocket", branch: "release"),
+        .package(url: "https://github.com/OperatorFoundation/Chord", branch: "release"),
+        .package(url: "https://github.com/OperatorFoundation/Datable", from: "4.0.0"),
+        .package(url: "https://github.com/OperatorFoundation/Net", branch: "release"),
+        .package(url: "https://github.com/OperatorFoundation/SwiftHexTools.git", from: "1.2.6"),
+        .package(url: "https://github.com/OperatorFoundation/TransmissionBase", branch: "release"),
+        .package(url: "https://github.com/OperatorFoundation/TransmissionTypes", branch: "release"),
     ],
     targets: [
         .target(
