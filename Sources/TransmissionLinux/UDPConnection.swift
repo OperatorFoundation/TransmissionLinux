@@ -44,7 +44,7 @@ public class UDPConnection: IPConnection
         try self.socket.write(from: data, to: self.udpOutgoingAddress!)
     }
 
-    public override func networkRead(size: Int, timeoutSeconds: Int = 10) throws -> Data
+    public override func networkRead(size: Int) throws -> Data
     {
         print("TransmissionLinux.TransmissionConnection: networkRead(size: \(size))")
 

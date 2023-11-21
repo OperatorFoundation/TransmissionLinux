@@ -6,6 +6,7 @@ import SwiftHexTools
 
 import Chord
 import Socket
+import Straw
 import Net
 import TransmissionTypes
 
@@ -24,8 +25,8 @@ public class TransmissionConnection: Connection
     var readLock = DispatchGroup()
     var writeLock = DispatchGroup()
     
-    var buffer: Data = Data()
-    
+    var buffer: UnsafeStraw = UnsafeStraw()
+
     public init?(host: String, port: Int, type: ConnectionType = .tcp, logger: Logger? = nil)
     {
         self.log = logger
@@ -110,11 +111,19 @@ public class TransmissionConnection: Connection
 
         if size <= buffer.count
         {
-            let result = Data(buffer[0..<size])
-            buffer = Data(buffer[size..<buffer.count])
-            self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
-            readLock.leave()
-            return result
+            do
+            {
+                let result = try self.buffer.read(size: size)
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+
+                readLock.leave()
+                return result
+            }
+            catch
+            {
+                readLock.leave()
+                return nil
+            }
         }
 
         guard let data = networkRead(size: size) else
@@ -129,7 +138,7 @@ public class TransmissionConnection: Connection
             return nil
         }
 
-        buffer.append(data)
+        self.buffer.write(data)
 
         guard size <= buffer.count else
         {
@@ -137,12 +146,18 @@ public class TransmissionConnection: Connection
             return nil
         }
 
-        let result = Data(buffer[0..<size])
-        buffer = Data(buffer[size..<buffer.count])
-        self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
-        readLock.leave()
-        
-        return result
+        do
+        {
+            let result = try self.buffer.read(size: size)
+            self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+            readLock.leave()
+
+            return result
+        }
+        catch
+        {
+            return nil
+        }
     }
     
     public func unsafeRead(size: Int) -> Data?
@@ -155,10 +170,16 @@ public class TransmissionConnection: Connection
 
         if size <= buffer.count
         {
-            let result = Data(buffer[0..<size])
-            buffer = Data(buffer[size..<buffer.count])
-            self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
-            return result
+            do
+            {
+                let result = try self.buffer.read(size: size)
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+                return result
+            }
+            catch
+            {
+                return nil
+            }
         }
 
         guard let data = networkRead(size: size) else
@@ -173,7 +194,7 @@ public class TransmissionConnection: Connection
             return nil
         }
 
-        buffer.append(data)
+        self.buffer.write(data)
 
         guard size <= buffer.count else
         {
@@ -181,10 +202,15 @@ public class TransmissionConnection: Connection
             return nil
         }
 
-        let result = Data(buffer[0..<size])
-        buffer = Data(buffer[size..<buffer.count])
-        
-        return result
+        do
+        {
+            let result = try self.buffer.read(size: size)
+            return result
+        }
+        catch
+        {
+            return nil
+        }
     }
 
     public func read(maxSize: Int) -> Data?
@@ -201,12 +227,19 @@ public class TransmissionConnection: Connection
 
         if size > 0
         {
-            let result = Data(buffer[0..<size])
-            buffer = Data(buffer[size..<buffer.count])
+            do
+            {
+                let result = try self.buffer.read(size: size)
 
-            self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
-            readLock.leave()
-            return result
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
+                readLock.leave()
+                return result
+            }
+            catch
+            {
+                readLock.leave()
+                return nil
+            }
         }
         else
         {
@@ -263,14 +296,22 @@ public class TransmissionConnection: Connection
                 return nil
             }
 
-            buffer.append(bytes)
+            self.buffer.write(bytes)
             let targetSize = min(maxSize, buffer.count)
-            let result = Data(buffer[0..<targetSize])
-            buffer = Data(buffer[targetSize..<buffer.count])
 
-            self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
-            readLock.leave()
-            return result
+            do
+            {
+                let result = try self.buffer.read(size: targetSize)
+
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
+                readLock.leave()
+                return result
+            }
+            catch
+            {
+                readLock.leave()
+                return nil
+            }
         }
     }
 
