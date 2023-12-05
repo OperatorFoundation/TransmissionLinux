@@ -14,11 +14,18 @@ public class SystemdConnection: Connection
 {
     let stdin = FileHandle(fileDescriptor: 3)
     let stdout = FileHandle(fileDescriptor: 3)
-
     let straw: UnsafeStraw = UnsafeStraw()
+    let readLock = DispatchSemaphore(value: 0)
+    let writeLock = DispatchSemaphore(value: 0)
 
     public func read(size: Int) -> Data?
     {
+        defer
+        {
+            self.readLock.signal()
+        }
+        self.readLock.wait()
+
         while self.straw.count < size
         {
             let data = self.stdin.availableData
@@ -37,6 +44,12 @@ public class SystemdConnection: Connection
     
     public func read(maxSize: Int) -> Data?
     {
+        defer
+        {
+            self.readLock.signal()
+        }
+        self.readLock.wait()
+
         while self.straw.count < maxSize
         {
             let data = self.stdin.availableData
@@ -90,6 +103,12 @@ public class SystemdConnection: Connection
     
     public func write(string: String) -> Bool
     {
+        defer
+        {
+            self.writeLock.signal()
+        }
+        self.writeLock.wait()
+
         return self.write(data: string.data)
     }
     
