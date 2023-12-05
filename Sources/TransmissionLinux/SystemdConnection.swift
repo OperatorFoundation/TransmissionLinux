@@ -65,7 +65,7 @@ public class SystemdConnection: Connection
         }
     }
 
-    public func networkRead(size: Int) -> Data?
+    public func unsafeRead(size: Int) -> Data?
     {
         while self.straw.count < size
         {
