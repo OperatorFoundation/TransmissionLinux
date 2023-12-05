@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Logging
 
 import Straw
 import TransmissionTypes
@@ -14,9 +15,19 @@ public class SystemdConnection: Connection
 {
     let stdin = FileHandle(fileDescriptor: 3)
     let stdout = FileHandle(fileDescriptor: 3)
+
+    let logger: Logger
+    let verbose: Bool
+
     let straw: UnsafeStraw = UnsafeStraw()
     let readLock = DispatchSemaphore(value: 0)
     let writeLock = DispatchSemaphore(value: 0)
+
+    public init(logger: Logger, verbose: Bool)
+    {
+        self.logger = logger
+        self.verbose = verbose
+    }
 
     public func read(size: Int) -> Data?
     {
