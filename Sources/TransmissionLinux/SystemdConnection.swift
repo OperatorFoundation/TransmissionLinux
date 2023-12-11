@@ -13,8 +13,7 @@ import TransmissionTypes
 
 public class SystemdConnection: Connection
 {
-    let stdin = FileHandle(fileDescriptor: 3)
-    let stdout = FileHandle(fileDescriptor: 3)
+    let fd = FileHandle(fileDescriptor: 3)
 
     let logger: Logger
     let verbose: Bool
@@ -22,6 +21,8 @@ public class SystemdConnection: Connection
     let straw: UnsafeStraw = UnsafeStraw()
     let readLock = DispatchSemaphore(value: 0)
     let writeLock = DispatchSemaphore(value: 0)
+
+    var closed: Bool = false
 
     public init(logger: Logger, verbose: Bool)
     {
@@ -31,6 +32,11 @@ public class SystemdConnection: Connection
 
     public func read(size: Int) -> Data?
     {
+        if closed
+        {
+            return nil
+        }
+
         defer
         {
             self.readLock.signal()
@@ -39,7 +45,7 @@ public class SystemdConnection: Connection
 
         while self.straw.count < size
         {
-            let data = self.stdin.availableData
+            let data = self.fd.availableData
             self.straw.write(data)
         }
 
@@ -55,6 +61,11 @@ public class SystemdConnection: Connection
     
     public func read(maxSize: Int) -> Data?
     {
+        if closed
+        {
+            return nil
+        }
+
         defer
         {
             self.readLock.signal()
@@ -63,7 +74,7 @@ public class SystemdConnection: Connection
 
         while self.straw.count < maxSize
         {
-            let data = self.stdin.availableData
+            let data = self.fd.availableData
             guard data.count > 0 else
             {
                 do
@@ -91,9 +102,14 @@ public class SystemdConnection: Connection
 
     public func unsafeRead(size: Int) -> Data?
     {
+        if closed
+        {
+            return nil
+        }
+
         while self.straw.count < size
         {
-            let data = self.stdin.availableData
+            let data = self.fd.availableData
             self.straw.write(data)
         }
 
@@ -109,11 +125,21 @@ public class SystemdConnection: Connection
 
     public func readWithLengthPrefix(prefixSizeInBits: Int) -> Data?
     {
+        if closed
+        {
+            return nil
+        }
+
         return TransmissionTypes.readWithLengthPrefix(prefixSizeInBits: prefixSizeInBits, connection: self)
     }
     
     public func write(string: String) -> Bool
     {
+        if closed
+        {
+            return false
+        }
+
         defer
         {
             self.writeLock.signal()
@@ -125,22 +151,37 @@ public class SystemdConnection: Connection
     
     public func write(data: Data) -> Bool
     {
-        self.stdout.write(data)
+        if closed
+        {
+            return false
+        }
+
+        self.fd.write(data)
 
         return true
     }
     
     public func writeWithLengthPrefix(data: Data, prefixSizeInBits: Int) -> Bool
     {
-        TransmissionTypes.writeWithLengthPrefix(data: data, prefixSizeInBits: prefixSizeInBits, connection: self)
+        if closed
+        {
+            return false
+        }
+
+        return TransmissionTypes.writeWithLengthPrefix(data: data, prefixSizeInBits: prefixSizeInBits, connection: self)
     }
     
     public func close()
     {
+        if closed
+        {
+            return
+        }
+
         do
         {
-            try self.stdin.close()
-            try self.stdout.close()
+            self.closed = true
+            try self.fd.close()
         }
         catch
         {
