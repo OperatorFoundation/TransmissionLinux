@@ -6,6 +6,7 @@ import SwiftHexTools
 
 import Chord
 import Socket
+import Straw
 import Net
 import TransmissionTypes
 
@@ -24,8 +25,8 @@ public class TransmissionConnection: Connection
     var readLock = DispatchGroup()
     var writeLock = DispatchGroup()
     
-    var buffer: Data = Data()
-    
+    var buffer: UnsafeStraw = UnsafeStraw()
+
     public init?(host: String, port: Int, type: ConnectionType = .tcp, logger: Logger? = nil)
     {
         self.log = logger
@@ -36,7 +37,7 @@ public class TransmissionConnection: Connection
                 guard let socket = try? Socket.create()
                 else
                 {
-                    print("TransmissionLinux: Failed to create a Linux TCP TransmissionConnection: Socket.create() failed.")
+                    self.log?.debug("TransmissionLinux: Failed to create a Linux TCP TransmissionConnection: Socket.create() failed.")
                     return nil
                 }
                 self.tcpConnection = socket
@@ -50,13 +51,13 @@ public class TransmissionConnection: Connection
                     }
                     else
                     {
-                        print("TransmissionLinux: Failed to create a Linux TransmissionConnection.")
+                        self.log?.debug("TransmissionLinux: Failed to create a Linux TransmissionConnection.")
                         return nil
                     }
                 }
                 catch
                 {
-                    print("TransmissionLinux: Failed to create a Linux transmission connection. socket.connect() failed: \(error)")
+                    self.log?.debug("TransmissionLinux: Failed to create a Linux transmission connection. socket.connect() failed: \(error)")
                     return nil
                 }
                 
@@ -64,7 +65,7 @@ public class TransmissionConnection: Connection
                 guard let socket = try? Socket.create(family: .inet, type: .datagram, proto: .udp)
                 else
                 {
-                    print("TransmissionLinux: Failed to create a Linux UDP TransmissionConnection: Socket.create() failed.")
+                    self.log?.debug("TransmissionLinux: Failed to create a Linux UDP TransmissionConnection: Socket.create() failed.")
                     return nil
                 }
                 self.udpConnection = socket
@@ -103,18 +104,26 @@ public class TransmissionConnection: Connection
 
         if size == 0
         {
-            print("TransmissionLinux: requested read size was zero")
+            self.log?.debug("TransmissionLinux: requested read size was zero")
             readLock.leave()
             return nil
         }
 
         if size <= buffer.count
         {
-            let result = Data(buffer[0..<size])
-            buffer = Data(buffer[size..<buffer.count])
-            print("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
-            readLock.leave()
-            return result
+            do
+            {
+                let result = try self.buffer.read(size: size)
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+
+                readLock.leave()
+                return result
+            }
+            catch
+            {
+                readLock.leave()
+                return nil
+            }
         }
 
         guard let data = networkRead(size: size) else
@@ -129,7 +138,7 @@ public class TransmissionConnection: Connection
             return nil
         }
 
-        buffer.append(data)
+        self.buffer.write(data)
 
         guard size <= buffer.count else
         {
@@ -137,54 +146,71 @@ public class TransmissionConnection: Connection
             return nil
         }
 
-        let result = Data(buffer[0..<size])
-        buffer = Data(buffer[size..<buffer.count])
-        print("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
-        readLock.leave()
-        
-        return result
+        do
+        {
+            let result = try self.buffer.read(size: size)
+            self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+            readLock.leave()
+
+            return result
+        }
+        catch
+        {
+            return nil
+        }
     }
     
     public func unsafeRead(size: Int) -> Data?
     {        
         if size == 0
         {
-            print("TransmissionLinux: requested read size was zero")
+            self.log?.debug("TransmissionLinux: requested read size was zero")
             return nil
         }
 
         if size <= buffer.count
         {
-            let result = Data(buffer[0..<size])
-            buffer = Data(buffer[size..<buffer.count])
-            print("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
-            return result
+            do
+            {
+                let result = try self.buffer.read(size: size)
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(size: \(size)) -> returned \(result.count) bytes.")
+                return result
+            }
+            catch
+            {
+                return nil
+            }
         }
 
         guard let data = networkRead(size: size) else
         {
-            print("TransmissionLinux: unsafeRead received nil response from networkRead()")
+            self.log?.debug("TransmissionLinux: unsafeRead received nil response from networkRead()")
             return nil
         }
         
         guard data.count > 0 else
         {
-            print("TransmissionLinux: unsafeRead received 0 bytes from networkRead()")
+            self.log?.debug("TransmissionLinux: unsafeRead received 0 bytes from networkRead()")
             return nil
         }
 
-        buffer.append(data)
+        self.buffer.write(data)
 
         guard size <= buffer.count else
         {
-            print("TransmissionLinux: unsafeRead requested size \(size) is larger than the buffer size \(buffer.count). Returning nil.")
+            self.log?.debug("TransmissionLinux: unsafeRead requested size \(size) is larger than the buffer size \(buffer.count). Returning nil.")
             return nil
         }
 
-        let result = Data(buffer[0..<size])
-        buffer = Data(buffer[size..<buffer.count])
-        
-        return result
+        do
+        {
+            let result = try self.buffer.read(size: size)
+            return result
+        }
+        catch
+        {
+            return nil
+        }
     }
 
     public func read(maxSize: Int) -> Data?
@@ -201,12 +227,19 @@ public class TransmissionConnection: Connection
 
         if size > 0
         {
-            let result = Data(buffer[0..<size])
-            buffer = Data(buffer[size..<buffer.count])
+            do
+            {
+                let result = try self.buffer.read(size: size)
 
-            print("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
-            readLock.leave()
-            return result
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
+                readLock.leave()
+                return result
+            }
+            catch
+            {
+                readLock.leave()
+                return nil
+            }
         }
         else
         {
@@ -237,40 +270,48 @@ public class TransmissionConnection: Connection
                 }
                 else
                 {
-                    print("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error: There are no valid connections")
+                    self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error: There are no valid connections")
                     readLock.leave()
                     return nil
                 }
             }
             catch
             {
-                print("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error trying to read from the network: \(error)")
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error trying to read from the network: \(error)")
                 readLock.leave()
                 return nil
             }
 
             guard let bytes = data else
             {
-                print("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error received a nil response when attempting to read from the network.")
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error received a nil response when attempting to read from the network.")
                 readLock.leave()
                 return nil
             }
             
             guard bytes.count > 0 else
             {
-                print("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error received an empty response when attempting to read from the network.")
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - Error received an empty response when attempting to read from the network.")
                 readLock.leave()
                 return nil
             }
 
-            buffer.append(bytes)
+            self.buffer.write(bytes)
             let targetSize = min(maxSize, buffer.count)
-            let result = Data(buffer[0..<targetSize])
-            buffer = Data(buffer[targetSize..<buffer.count])
 
-            print("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
-            readLock.leave()
-            return result
+            do
+            {
+                let result = try self.buffer.read(size: targetSize)
+
+                self.log?.debug("TransmissionLinux: TransmissionConnection.read(maxSize: \(maxSize)) - returned \(result.count) bytes")
+                readLock.leave()
+                return result
+            }
+            catch
+            {
+                readLock.leave()
+                return nil
+            }
         }
     }
 
@@ -282,7 +323,7 @@ public class TransmissionConnection: Connection
         let success = write(data: data)
         writeLock.leave()
         
-        print("TransmissionLinux: TransmissionConnection.networkWrite -> write(string:), success: \(success)")
+        self.log?.debug("TransmissionLinux: TransmissionConnection.networkWrite -> write(string:), success: \(success)")
         return success
     }
     
@@ -292,15 +333,15 @@ public class TransmissionConnection: Connection
         let success = networkWrite(data: data)
         writeLock.leave()
         
-        print("TransmissionLinux: TransmissionConnection.networkWrite -> write(data:), success: \(success)")
+        self.log?.debug("TransmissionLinux: TransmissionConnection.networkWrite -> write(data:), success: \(success)")
         return success
     }
 
     public func readWithLengthPrefix(prefixSizeInBits: Int) -> Data?
     {
-        print("TransmissionLinux: readWithLengthPrefix entering lock...")
+        self.log?.debug("TransmissionLinux: readWithLengthPrefix entering lock...")
         readLock.enter()
-        print("TransmissionLinux: entered readWithLengthPrefix ")
+        self.log?.debug("TransmissionLinux: entered readWithLengthPrefix ")
 
         guard let result = TransmissionTypes.readWithLengthPrefix(prefixSizeInBits: prefixSizeInBits, connection: self) else
         {
@@ -308,7 +349,7 @@ public class TransmissionConnection: Connection
             return nil
         }
 
-        print("TransmissionLinux: TransmissionConnection.readWithLengthPrefix -> returned \(result.count) bytes.")
+        self.log?.debug("TransmissionLinux: TransmissionConnection.readWithLengthPrefix -> returned \(result.count) bytes.")
         readLock.leave()
         return result
     }
@@ -330,11 +371,11 @@ public class TransmissionConnection: Connection
 
     private func networkRead(size: Int) -> Data?
     {
-        print("TransmissionLinux.TransmissionConnection: networkRead(size: \(size))")
+        self.log?.debug("TransmissionLinux.TransmissionConnection: networkRead(size: \(size))")
         
         guard size > 0 else
         {
-            print("TransmissionLinux: TransmissionConnection - network read requested for a read size of 0")
+            self.log?.debug("TransmissionLinux: TransmissionConnection - network read requested for a read size of 0")
             return nil
         }
         
@@ -346,9 +387,9 @@ public class TransmissionConnection: Connection
             {
                 if let tcpConnection = tcpConnection
                 {
-                    print("TransmissionLinux.TransmissionConnection: calling tcpConnection.read")
+                    self.log?.debug("TransmissionLinux.TransmissionConnection: calling tcpConnection.read")
                     let bytesRead = try tcpConnection.read(into: &networkBuffer)
-                    print("TransmissionLinux.TransmissionConnection: tcpConnection.read read \(bytesRead) bytes")
+                    self.log?.debug("TransmissionLinux.TransmissionConnection: tcpConnection.read read \(bytesRead) bytes")
                     
                     if bytesRead == 0 && tcpConnection.remoteConnectionClosed
                     {
@@ -359,9 +400,9 @@ public class TransmissionConnection: Connection
                 {
                     if let udpPort = udpIncomingPort
                     {
-                        print("TransmissionLinux.TransmissionConnection: calling udpConnection.listen")
+                        self.log?.debug("TransmissionLinux.TransmissionConnection: calling udpConnection.listen")
                         let (bytesRead, address) = try udpConnection.listen(forMessage: &networkBuffer, on: udpPort)
-                        print("TransmissionLinux.TransmissionConnection: udpConnection.listen read \(bytesRead) bytes.")
+                        self.log?.debug("TransmissionLinux.TransmissionConnection: udpConnection.listen read \(bytesRead) bytes.")
                         
                         if udpOutgoingAddress == nil
                         {
@@ -375,9 +416,9 @@ public class TransmissionConnection: Connection
                     }
                     else
                     {
-                        print("TransmissionLinux.TransmissionConnection: calling udpConnection.readDatagram")
+                        self.log?.debug("TransmissionLinux.TransmissionConnection: calling udpConnection.readDatagram")
                         let (bytesRead, address) = try udpConnection.readDatagram(into: &networkBuffer)
-                        print("TransmissionLinux.TransmissionConnection: udpConnection.readDatagram read \(bytesRead) bytes")
+                        self.log?.debug("TransmissionLinux.TransmissionConnection: udpConnection.readDatagram read \(bytesRead) bytes")
                         
                         if udpOutgoingAddress == nil
                         {
@@ -392,13 +433,13 @@ public class TransmissionConnection: Connection
                 }
                 else
                 {
-                    print("TransmissionLinux.TransmissionConnection: networkRead - Error: There are no valid connections")
+                    self.log?.debug("TransmissionLinux.TransmissionConnection: networkRead - Error: There are no valid connections")
                     return nil
                 }
             }
             catch
             {
-                print("TransmissionLinux.TransmissionConnection: networkRead - Error: \(error)")
+                self.log?.debug("TransmissionLinux.TransmissionConnection: networkRead - Error: \(error)")
                 return nil
             }
         }
@@ -414,26 +455,26 @@ public class TransmissionConnection: Connection
             {
                 let byteCountWritten = try tcpConnection.write(from: data)
                 
-                print("TransmissionLinux: TransmissionConnection.networkWrite -> tcp connection wrote \(byteCountWritten) bytes")
+                self.log?.debug("TransmissionLinux: TransmissionConnection.networkWrite -> tcp connection wrote \(byteCountWritten) bytes")
                 return true
             }
             else if let udpConnection = udpConnection, let udpAddress = udpOutgoingAddress
             {
                 let byteCountWritten = try udpConnection.write(from: data, to: udpAddress)
                 
-                print("TransmissionLinux: TransmissionConnection.networkWrite -> udp connection wrote \(byteCountWritten) bytes")
+                self.log?.debug("TransmissionLinux: TransmissionConnection.networkWrite -> udp connection wrote \(byteCountWritten) bytes")
                 return true
             }
             else
             {
-                print("TransmissionLinux: TransmissionConnection.networkWrite - Error: There are no valid connections")
+                self.log?.debug("TransmissionLinux: TransmissionConnection.networkWrite - Error: There are no valid connections")
                 return false
             }
             
         }
         catch
         {
-            print("TransmissionLinux: TransmissionConnection.networkWrite - Error: \(error)")
+            self.log?.debug("TransmissionLinux: TransmissionConnection.networkWrite - Error: \(error)")
             return false
         }
     }
