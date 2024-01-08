@@ -45,8 +45,20 @@ public class SystemdConnection: Connection
 
         while self.straw.count < size
         {
-            let data = self.fd.availableData
-            self.straw.write(data)
+            do
+            {
+                guard let data = try self.fd.read(upToCount: size - self.straw.count) else
+                {
+                    self.logger.info("TransmissionLinux.SystemdConnection: Received nil response while reading from the file descriptor")
+                    return nil
+                }
+                self.straw.write(data)
+            }
+            catch (let error)
+            {
+                self.logger.info("TransmissionLinux.SystemdConnection: Received an error while reading from the file descriptor. Error: \(error)")
+                return nil
+            }
         }
 
         do
