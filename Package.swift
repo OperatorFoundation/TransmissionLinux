@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "TransmissionLinux",
     platforms: [
-        .macOS(.v13),
+        .macOS(.v14),
         .iOS(.v16)
     ],
     products: [
@@ -17,12 +17,12 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-log", from: "1.5.3"),
         .package(url: "https://github.com/OperatorFoundation/BlueSocket", from: "1.1.2"),
-        .package(url: "https://github.com/OperatorFoundation/Chord", from: "0.1.5"),
+        .package(url: "https://github.com/OperatorFoundation/Chord", from: "0.1.6"),
         .package(url: "https://github.com/OperatorFoundation/Datable", from: "4.0.1"),
-        .package(url: "https://github.com/OperatorFoundation/Net", from: "0.0.10"),
-        .package(url: "https://github.com/OperatorFoundation/Straw", from: "1.0.4"),
+        .package(url: "https://github.com/OperatorFoundation/Net", from: "0.0.11"),
+        .package(url: "https://github.com/OperatorFoundation/Straw", from: "1.0.6"),
         .package(url: "https://github.com/OperatorFoundation/SwiftHexTools", from: "1.2.6"),
-        .package(url: "https://github.com/OperatorFoundation/TransmissionBase", from: "1.0.2"),
+        .package(url: "https://github.com/OperatorFoundation/TransmissionBase", from: "1.0.3"),
         .package(url: "https://github.com/OperatorFoundation/TransmissionTypes", from: "0.0.2"),
     ],
     targets: [
